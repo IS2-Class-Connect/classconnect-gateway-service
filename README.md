@@ -17,6 +17,13 @@
 
 This repository is a template for creating microservices for the Class-Connect application. It uses **NestJS**, **Prisma**, and **TypeScript** with a **package-layered architecture**. The template is intentionally minimal and ready to be customized for each specific microservice.
 
+## Use
+The gateway will reroute the client to the specified service. For example `GET /users/<uuid>` will call the user-service with `GET /<uuid>`.
+
+## Endpoints
+- `/users`
+- `/courses`
+
 ## Technologies
 
 - **NestJS**: A progressive Node.js framework for building efficient and scalable server-side applications.
