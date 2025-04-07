@@ -22,7 +22,7 @@ The gateway will reroute the client to the specified service. For example `GET /
 
 ## Endpoints
 - `/users`
-- `/courses`
+- `/education`
 
 ## Technologies
 
