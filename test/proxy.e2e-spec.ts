@@ -3,15 +3,15 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { ProxyModule } from '../src/proxy/proxy.module';
 import { startMockUserService } from './mock-user.service';
-import { startMockCourseService } from './mock-course.service';
+import { startMockEducationService } from './mock-education.service';
 
 describe('ProxyController (e2e)', () => {
     let app: INestApplication;
-    let userServer, courseServer;
+    let userServer, educationServer;
 
     beforeAll(async () => {
         userServer = startMockUserService(3001);
-        courseServer = startMockCourseService(3002);
+        educationServer = startMockEducationService(3002);
 
         const moduleFixture: TestingModule = await Test.createTestingModule({
             imports: [ProxyModule],
@@ -24,19 +24,19 @@ describe('ProxyController (e2e)', () => {
     afterAll(async () => {
         await app.close();
         userServer.close();
-        courseServer.close();
+        educationServer.close();
     });
 
-    it('GET /users/ping should proxy to user service', async () => {
+    it('GET /users/ping should proxy to users service', async () => {
         const res = await request(app.getHttpServer()).get("/users/ping")
         expect(res.status).toBe(200);
         expect(res.body).toEqual({ message: 'Pong from users service' });
     });
 
-    it('GET /courses/ping should proxy to course service', async () => {
-        const res = await request(app.getHttpServer()).get('/courses/ping');
+    it('GET /education/ping should proxy to education service', async () => {
+        const res = await request(app.getHttpServer()).get('/education/ping');
         expect(res.status).toBe(200);
-        expect(res.body).toEqual({ message: 'Pong from courses service' });
+        expect(res.body).toEqual({ message: 'Pong from education service' });
     });
 
     it('GET /unknown/path should return 400', async () => {
