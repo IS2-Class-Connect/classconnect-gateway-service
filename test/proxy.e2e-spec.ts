@@ -4,18 +4,24 @@ import request from 'supertest';
 import { ProxyModule } from '../src/proxy/proxy.module';
 import { startMockUserService } from './mock-user.service';
 import { startMockEducationService } from './mock-education.service';
-import { FirebaseAuthGuard } from '../src/auth/firebase-auth.guard';
 
 const mockFirebaseAdmin = {
     auth: () => ({
-        verifyIdToken: jest.fn().mockResolvedValue({
-            uid: 'abc123',
-            email: 'test@example.com',
-            name: 'Mock user',
-            picture: 'https://mock.avatar',
+        verifyIdToken: jest.fn((token) => {
+            if (token === 'invalid-token') {
+                throw Object.assign(new Error('Invalid token'), { code: 'auth/argument-error' });
+            }
+            return {
+                uid: 'test-uid',
+                email: 'test@example.com',
+                name: 'Test User',
+                picture: 'https://example.com/pic.png',
+            };
         }),
     }),
 };
+
+
 
 describe('ProxyController (e2e)', () => {
     let app: INestApplication;
@@ -67,6 +73,22 @@ describe('ProxyController (e2e)', () => {
 
         expect(res.status).toBe(400);
         expect(res.body.error).toMatch(/Unknown service/);
+    });
+
+    it('should return 401 for an invalid Firebase token', async () => {
+        const res = await request(app.getHttpServer())
+            .get('/users/ping')
+            .set('Authorization', 'Bearer invalid-token');
+
+        expect(res.status).toBe(401);
+        expect(res.body.message).toMatch(/Invalid token/);
+    });
+
+    it('should return 401 if Authorization header is missing', async () => {
+        const res = await request(app.getHttpServer()).get('/users/ping');
+
+        expect(res.status).toBe(401);
+        expect(res.body.message).toMatch(/Missing or invalid token/);
     });
 });
 
