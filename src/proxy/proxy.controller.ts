@@ -5,10 +5,12 @@ import {
     Res,
     Param,
     HttpStatus,
+    UseGuards,
 } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { Request, Response } from 'express';
 import { firstValueFrom } from 'rxjs';
+import { FirebaseAuthGuard } from 'src/auth/firebase-auth.guard';
 
 @Controller('')
 export class ProxyController {
@@ -21,6 +23,7 @@ export class ProxyController {
         };
     }
 
+    @UseGuards(FirebaseAuthGuard)
     @All('/:service/*')
     async proxy(
         @Req() req: Request,

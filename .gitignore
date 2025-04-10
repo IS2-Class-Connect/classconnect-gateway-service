@@ -33,3 +33,6 @@ yarn-error.log*
 # GitHub workflows cache (optional)
 .github/.cache/
 node_modules
+
+# Private key
+src/firebase/firebase-admin.json
