@@ -10,7 +10,7 @@ import {
 import { HttpService } from '@nestjs/axios';
 import { Request, Response } from 'express';
 import { firstValueFrom } from 'rxjs';
-import { FirebaseAuthGuard } from 'src/auth/firebase-auth.guard';
+import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
 
 @Controller('')
 export class ProxyController {
