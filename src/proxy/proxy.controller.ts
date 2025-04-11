@@ -24,13 +24,12 @@ export class ProxyController {
     }
 
     @UseGuards(FirebaseAuthGuard)
-    @All('/:service')
-    @All('/:service/*')
+    @All('*')
     async proxy(
         @Req() req: Request,
         @Res() res: Response,
-        @Param('service') service: string,
     ) {
+        const [, service, ...rest] = req.path.split('/');
         const serviceBaseUrl = this.serviceMap[service];
         if (!serviceBaseUrl) {
             return res
@@ -38,7 +37,7 @@ export class ProxyController {
                 .send({ error: `Unknown service: ${service}` });
         }
 
-        const targetPath = req.originalUrl.replace(`/${service}`, '');
+        const targetPath = '/' + rest.join('/');
         const targetUrl = `${serviceBaseUrl}${targetPath}`;
 
         try {
