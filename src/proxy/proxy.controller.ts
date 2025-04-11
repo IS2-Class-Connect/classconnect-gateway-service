@@ -5,10 +5,12 @@ import {
     Res,
     Param,
     HttpStatus,
+    UseGuards,
 } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { Request, Response } from 'express';
 import { firstValueFrom } from 'rxjs';
+import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
 
 @Controller('')
 export class ProxyController {
@@ -21,12 +23,13 @@ export class ProxyController {
         };
     }
 
-    @All('/:service/*')
+    @UseGuards(FirebaseAuthGuard)
+    @All('*')
     async proxy(
         @Req() req: Request,
         @Res() res: Response,
-        @Param('service') service: string,
     ) {
+        const [, service, ...rest] = req.path.split('/');
         const serviceBaseUrl = this.serviceMap[service];
         if (!serviceBaseUrl) {
             return res
@@ -34,7 +37,7 @@ export class ProxyController {
                 .send({ error: `Unknown service: ${service}` });
         }
 
-        const targetPath = req.originalUrl.replace(`/${service}`, '');
+        const targetPath = '/' + rest.join('/');
         const targetUrl = `${serviceBaseUrl}${targetPath}`;
 
         try {
