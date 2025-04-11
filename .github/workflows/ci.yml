@@ -28,7 +28,9 @@ jobs:
 
       - name: Write Firebase service key to file
         run: |
-          echo "${{ secrets.FIREBASE_SERVICEKEY }}" > src/firebase/firebase-admin.json
+          printf '%s' "$FIREBASE_SERVICEKEY" > src/firebase/firebase-admin.json
+        env:
+          FIREBASE_SERVICEKEY: ${{ secrets.FIREBASE_SERVICEKEY }}
 
       - name: Run tests with coverage
         run: npm run test:cov
