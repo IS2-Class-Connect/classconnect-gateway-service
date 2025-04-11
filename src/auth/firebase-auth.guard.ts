@@ -30,7 +30,6 @@ export class FirebaseAuthGuard implements CanActivate {
             };
             return true;
         } catch (error) {
-            console.error('Firebase token verification failed', error);
             throw new UnauthorizedException('Invalid token');
         }
     }
