@@ -1,6 +1,6 @@
 import { Global, Module } from '@nestjs/common';
 import admin from 'firebase-admin';
-var serviceAccount = require('./firebase-admin.json')
+import * as serviceAccount from './firebase-admin.json';
 
 @Global()
 @Module({
@@ -9,7 +9,7 @@ var serviceAccount = require('./firebase-admin.json')
             provide: 'FIREBASE_ADMIN',
             useFactory: () => {
                 return admin.initializeApp({
-                    credential: admin.credential.cert(serviceAccount),
+                    credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
                 });
             },
         },

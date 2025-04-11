@@ -20,6 +20,9 @@ This repository is a template for creating microservices for the Class-Connect a
 ## Use
 The gateway will reroute the client to the specified service. For example `GET /users/<uuid>` will call the user-service with `GET /<uuid>`.
 
+## Firebase Auth
+For this to work there must be a service account key in `src/firebase/` where the file is called `firebase-admin.json`.
+
 ## Endpoints
 - `/users`
 - `/education`

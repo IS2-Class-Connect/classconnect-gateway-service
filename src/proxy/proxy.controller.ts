@@ -24,6 +24,7 @@ export class ProxyController {
     }
 
     @UseGuards(FirebaseAuthGuard)
+    @All('/:service')
     @All('/:service/*')
     async proxy(
         @Req() req: Request,
