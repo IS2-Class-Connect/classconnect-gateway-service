@@ -1,6 +1,6 @@
 import { Global, Module } from '@nestjs/common';
 import admin from 'firebase-admin';
-const serviceAccount = require('./firebase-admin.json')
+import serviceAccount from './firebase-admin.json';
 
 @Global()
 @Module({
