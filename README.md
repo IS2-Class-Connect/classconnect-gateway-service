@@ -19,13 +19,13 @@
 This repository is a template for creating microservices for the Class-Connect application. It uses **NestJS**, **Prisma**, and **TypeScript** with a **package-layered architecture**. The template is intentionally minimal and ready to be customized for each specific microservice.
 
 ## Use
-The gateway will reroute the client to the specified service. For example `GET /users/<uuid>` will call the user-service with `GET /<uuid>`.
+The gateway will reroute the client to the specified service. For example `GET /user/<uuid>` will call the user-service with `GET /user/<uuid>`.
 
 ## Firebase Auth
 For this to work there must be a service account key in `src/firebase/` where the file is called `firebase-admin.json`.
 
 ## Endpoints
-- `/users`
+- `/user`
 - `/education`
 
 ## Technologies

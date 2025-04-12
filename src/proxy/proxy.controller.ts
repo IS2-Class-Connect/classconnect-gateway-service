@@ -18,7 +18,7 @@ export class ProxyController {
 
     constructor(private readonly http: HttpService) {
         this.serviceMap = {
-            users: process.env.USERS_URL ?? 'http://localhost:3001',
+            user: process.env.USER_URL ?? 'http://localhost:3001',
             education: process.env.EDUCATION_URL ?? 'http://localhost:3002',
         };
     }
@@ -29,7 +29,7 @@ export class ProxyController {
         @Req() req: Request,
         @Res() res: Response,
     ) {
-        const [, service, ...rest] = req.path.split('/');
+        const service = req.path.split('/')[1];
         const serviceBaseUrl = this.serviceMap[service];
         if (!serviceBaseUrl) {
             return res
@@ -37,8 +37,7 @@ export class ProxyController {
                 .send({ error: `Unknown service: ${service}` });
         }
 
-        const targetPath = '/' + rest.join('/');
-        const targetUrl = `${serviceBaseUrl}${targetPath}`;
+        const targetUrl = `${serviceBaseUrl}${req.path}`;
 
         try {
             const response = await firstValueFrom(

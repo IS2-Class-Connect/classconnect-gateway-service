@@ -48,13 +48,13 @@ describe('ProxyController (e2e)', () => {
         educationServer.close();
     });
 
-    it('GET /users/ping should proxy to users service', async () => {
+    it('GET /user/ping should proxy to users service', async () => {
         const res = await request(app.getHttpServer())
-            .get('/users/ping')
+            .get('/user/ping')
             .set('Authorization', 'Bearer mock-token');
 
         expect(res.status).toBe(200);
-        expect(res.body).toEqual({ message: 'Pong from users service' });
+        expect(res.body).toEqual({ message: 'Pong from user service' });
     });
 
     it('GET /education/ping should proxy to education service', async () => {
@@ -77,7 +77,7 @@ describe('ProxyController (e2e)', () => {
 
     it('should return 401 for an invalid Firebase token', async () => {
         const res = await request(app.getHttpServer())
-            .get('/users/ping')
+            .get('/user/ping')
             .set('Authorization', 'Bearer invalid-token');
 
         expect(res.status).toBe(401);
@@ -85,7 +85,7 @@ describe('ProxyController (e2e)', () => {
     });
 
     it('should return 401 if Authorization header is missing', async () => {
-        const res = await request(app.getHttpServer()).get('/users/ping');
+        const res = await request(app.getHttpServer()).get('/user/ping');
 
         expect(res.status).toBe(401);
         expect(res.body.message).toMatch(/Missing or invalid token/);
