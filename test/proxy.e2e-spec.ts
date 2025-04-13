@@ -21,8 +21,6 @@ const mockFirebaseAdmin = {
     }),
 };
 
-
-
 describe('ProxyController (e2e)', () => {
     let app: INestApplication;
     let userServer, educationServer;
@@ -96,6 +94,18 @@ describe('ProxyController (e2e)', () => {
 
         expect(res.status).toBe(200);
         expect(res.body.message).toMatch('Created user');
+    })
+
+    it('checking lock status of a user should not need authentication', async () => {
+        const res = await request(app.getHttpServer()).get('/users/valid/check-lock-status');
+        expect(res.status).toBe(200);
+        expect(res.body.message).toMatch('valid is not locked');
+    })
+
+    it('checking lock status of a locke user should not need authentication', async () => {
+        const res = await request(app.getHttpServer()).get('/users/locked/check-lock-status');
+        expect(res.status).toBe(200);
+        expect(res.body.message).toMatch('locked is locked');
     })
 });
 
