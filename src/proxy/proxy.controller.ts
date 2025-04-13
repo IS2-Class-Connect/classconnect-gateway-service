@@ -6,6 +6,8 @@ import {
     HttpStatus,
     UseGuards,
     Post,
+    Get,
+    Patch,
 } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { Request, Response } from 'express';
@@ -23,11 +25,22 @@ export class ProxyController {
         };
     }
 
-    // User registration (unprotected)
-    @Post("/users")
-    async registerUser(@Req() req: Request, @Res() res: Response) {
-        const serviceBaseUrl = this.serviceMap['users'];
-        return this.reRoute(req, res, `${serviceBaseUrl}${req.path}`)
+    @Get('/users/*/check-lock-status') // (unprotected)
+    async usersCheckLockStatus(@Req() req: Request, @Res() res: Response) {
+        const usersUrl = this.serviceMap['users'];
+        return this.reRoute(req, res, `${usersUrl}${req.path}`)
+    }
+
+    @Patch('/users/*/failed-attempts') // (unprotected)
+    async usersFailedAttempts(@Req() req: Request, @Res() res: Response) {
+        const usersUrl = this.serviceMap['users'];
+        return this.reRoute(req, res, `${usersUrl}${req.path}`)
+    }
+
+    @Post('/users') // (unprotected)
+    async usersCreate(@Req() req: Request, @Res() res: Response) {
+        const usersUrl = this.serviceMap['users'];
+        return this.reRoute(req, res, `${usersUrl}${req.path}`)
     }
 
     @All('*')
