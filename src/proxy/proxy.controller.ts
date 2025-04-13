@@ -3,9 +3,11 @@ import {
     All,
     Req,
     Res,
-    Param,
     HttpStatus,
     UseGuards,
+    Post,
+    Get,
+    Patch,
 } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { Request, Response } from 'express';
@@ -14,7 +16,7 @@ import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
 
 @Controller('')
 export class ProxyController {
-    serviceMap: Object;
+    private readonly serviceMap: Record<string, string>;
 
     constructor(private readonly http: HttpService) {
         this.serviceMap = {
@@ -23,13 +25,39 @@ export class ProxyController {
         };
     }
 
-    @UseGuards(FirebaseAuthGuard)
+    // (unprotected)
+    @Get('/users/*/check-lock-status')
+    async usersCheckLockStatus(@Req() req: Request, @Res() res: Response) {
+        return this.reRoute(req, res)
+    }
+
+    // (unprotected)
+    @Patch('/users/*/failed-attempts')
+    async usersFailedAttempts(@Req() req: Request, @Res() res: Response) {
+        return this.reRoute(req, res)
+    }
+
+    // (unprotected)
+    @Post('/users')
+    async usersCreate(@Req() req: Request, @Res() res: Response) {
+        return this.reRoute(req, res)
+    }
+
     @All('*')
-    async proxy(
-        @Req() req: Request,
-        @Res() res: Response,
-    ) {
-        const [, service, ...rest] = req.path.split('/');
+    @UseGuards(FirebaseAuthGuard)
+    async proxy(@Req() req: Request, @Res() res: Response) {
+        return this.reRoute(req, res);
+    }
+
+    async reRoute(req: Request, res: Response) {
+        const parts = req.path.split('/');
+        if (parts.length < 2) {
+            return res
+                .status(HttpStatus.BAD_REQUEST)
+                .send({ message: 'No service was provided' });
+        }
+
+        const service = parts[1];
         const serviceBaseUrl = this.serviceMap[service];
         if (!serviceBaseUrl) {
             return res
@@ -37,9 +65,8 @@ export class ProxyController {
                 .send({ error: `Unknown service: ${service}` });
         }
 
-        const targetPath = '/' + rest.join('/');
-        const targetUrl = `${serviceBaseUrl}${targetPath}`;
-
+        const targetUrl = `${serviceBaseUrl}${req.path}`
+        const { host, connection, 'content-length': _, ...safeHeaders } = req.headers;
         try {
             const response = await firstValueFrom(
                 this.http.request({
@@ -47,10 +74,10 @@ export class ProxyController {
                     url: targetUrl,
                     data: req.body,
                     params: req.query,
-                    headers: req.headers,
-                }),
+                    headers: safeHeaders,
+                })
             );
-            res.status(response.status).send(response.data);
+            return res.status(response.status).send(response.data);
         } catch (error) {
             const status = error.response?.status || HttpStatus.INTERNAL_SERVER_ERROR;
             const data = error.response?.data || { message: 'Internal server error' };
