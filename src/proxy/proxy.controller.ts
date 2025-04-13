@@ -62,7 +62,7 @@ export class ProxyController {
         if (!serviceBaseUrl) {
             return res
                 .status(HttpStatus.BAD_REQUEST)
-                .send({ error: `Unknown service: ${service}`});
+                .send({ error: `Unknown service: ${service}` });
         }
 
         const targetUrl = `${serviceBaseUrl}${req.path}`
