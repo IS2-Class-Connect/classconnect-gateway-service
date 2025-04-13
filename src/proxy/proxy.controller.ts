@@ -23,7 +23,6 @@ export class ProxyController {
         };
     }
 
-
     // User registration (unprotected)
     @Post("/users")
     async registerUser(@Req() req: Request, @Res() res: Response) {
