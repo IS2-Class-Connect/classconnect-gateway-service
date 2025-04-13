@@ -6,6 +6,9 @@ export function startMockUserService(port: number) {
     app.get('/users/ping', (_req, res) => {
         res.json({ message: 'Pong from users service' });
     });
+    app.post('/users', (_req, res) => {
+        res.json({ message: 'Created user' });
+    })
     return app.listen(port);
 }
 

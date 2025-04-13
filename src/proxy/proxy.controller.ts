@@ -3,9 +3,9 @@ import {
     All,
     Req,
     Res,
-    Param,
     HttpStatus,
     UseGuards,
+    Post,
 } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { Request, Response } from 'express';
@@ -14,7 +14,7 @@ import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
 
 @Controller('')
 export class ProxyController {
-    serviceMap: Object;
+    private readonly serviceMap: Record<string, string>;
 
     constructor(private readonly http: HttpService) {
         this.serviceMap = {
@@ -23,17 +23,22 @@ export class ProxyController {
         };
     }
 
-    @UseGuards(FirebaseAuthGuard)
+
+    // User registration (unprotected)
+    @Post("/users")
+    async registerUser(@Req() req: Request, @Res() res: Response) {
+        const serviceBaseUrl = this.serviceMap['users'];
+        return this.reRoute(req, res, `${serviceBaseUrl}${req.path}`)
+    }
+
     @All('*')
-    async proxy(
-        @Req() req: Request,
-        @Res() res: Response,
-    ) {
-        const parts = req.path.split('/')
+    @UseGuards(FirebaseAuthGuard)
+    async proxy(@Req() req: Request, @Res() res: Response) {
+        const parts = req.path.split('/');
         if (parts.length < 2) {
-            const status = HttpStatus.BAD_REQUEST;
-            const data = { message: 'No service was provided' };;;;
-            res.status(status).send(data);
+            return res
+                .status(HttpStatus.BAD_REQUEST)
+                .send({ message: 'No service was provided' });
         }
 
         const service = parts[1];
@@ -41,20 +46,25 @@ export class ProxyController {
         if (!serviceBaseUrl) {
             return res
                 .status(HttpStatus.BAD_REQUEST)
-                .send({ error: `Unknown service: ${service}` });
+                .send({ error: `Unknown service: ${service}`});
         }
 
+        return this.reRoute(req, res, `${serviceBaseUrl}${req.path}`);
+    }
+
+    async reRoute(req: Request, res: Response, url: string) {
+        const { host, connection, 'content-length': _, ...safeHeaders } = req.headers;
         try {
             const response = await firstValueFrom(
                 this.http.request({
                     method: req.method,
-                    url: `${serviceBaseUrl}${req.path}`,
+                    url,
                     data: req.body,
                     params: req.query,
-                    headers: req.headers,
-                }),
+                    headers: safeHeaders,
+                })
             );
-            res.status(response.status).send(response.data);
+            return res.status(response.status).send(response.data);
         } catch (error) {
             const status = error.response?.status || HttpStatus.INTERNAL_SERVER_ERROR;
             const data = error.response?.data || { message: 'Internal server error' };
