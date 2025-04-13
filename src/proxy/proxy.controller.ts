@@ -25,27 +25,31 @@ export class ProxyController {
         };
     }
 
-    @Get('/users/*/check-lock-status') // (unprotected)
+    // (unprotected)
+    @Get('/users/*/check-lock-status')
     async usersCheckLockStatus(@Req() req: Request, @Res() res: Response) {
-        const usersUrl = this.serviceMap['users'];
-        return this.reRoute(req, res, `${usersUrl}${req.path}`)
+        return this.reRoute(req, res)
     }
 
-    @Patch('/users/*/failed-attempts') // (unprotected)
+    // (unprotected)
+    @Patch('/users/*/failed-attempts')
     async usersFailedAttempts(@Req() req: Request, @Res() res: Response) {
-        const usersUrl = this.serviceMap['users'];
-        return this.reRoute(req, res, `${usersUrl}${req.path}`)
+        return this.reRoute(req, res)
     }
 
-    @Post('/users') // (unprotected)
+    // (unprotected)
+    @Post('/users')
     async usersCreate(@Req() req: Request, @Res() res: Response) {
-        const usersUrl = this.serviceMap['users'];
-        return this.reRoute(req, res, `${usersUrl}${req.path}`)
+        return this.reRoute(req, res)
     }
 
     @All('*')
     @UseGuards(FirebaseAuthGuard)
     async proxy(@Req() req: Request, @Res() res: Response) {
+        return this.reRoute(req, res);
+    }
+
+    async reRoute(req: Request, res: Response) {
         const parts = req.path.split('/');
         if (parts.length < 2) {
             return res
@@ -61,16 +65,13 @@ export class ProxyController {
                 .send({ error: `Unknown service: ${service}`});
         }
 
-        return this.reRoute(req, res, `${serviceBaseUrl}${req.path}`);
-    }
-
-    async reRoute(req: Request, res: Response, url: string) {
+        const targetUrl = `${serviceBaseUrl}${req.path}`
         const { host, connection, 'content-length': _, ...safeHeaders } = req.headers;
         try {
             const response = await firstValueFrom(
                 this.http.request({
                     method: req.method,
-                    url,
+                    url: targetUrl,
                     data: req.body,
                     params: req.query,
                     headers: safeHeaders,
