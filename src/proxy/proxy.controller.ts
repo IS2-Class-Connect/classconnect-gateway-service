@@ -29,7 +29,14 @@ export class ProxyController {
         @Req() req: Request,
         @Res() res: Response,
     ) {
-        const [, service, ...rest] = req.path.split('/');
+        const parts = req.path.split('/')
+        if (parts.length < 2) {
+            const status = HttpStatus.BAD_REQUEST;
+            const data = { message: 'No service was provided' };;;;
+            res.status(status).send(data);
+        }
+
+        const service = parts[1];
         const serviceBaseUrl = this.serviceMap[service];
         if (!serviceBaseUrl) {
             return res
@@ -37,14 +44,11 @@ export class ProxyController {
                 .send({ error: `Unknown service: ${service}` });
         }
 
-        const targetPath = '/' + rest.join('/');
-        const targetUrl = `${serviceBaseUrl}${targetPath}`;
-
         try {
             const response = await firstValueFrom(
                 this.http.request({
                     method: req.method,
-                    url: targetUrl,
+                    url: `${serviceBaseUrl}${req.path}`,
                     data: req.body,
                     params: req.query,
                     headers: req.headers,
