@@ -21,7 +21,7 @@ export class ProxyController {
     constructor(private readonly http: HttpService) {
         this.serviceMap = {
             users: process.env.USERS_URL ?? 'http://localhost:3001',
-            education: process.env.EDUCATION_URL ?? 'http://localhost:3002',
+            courses: process.env.EDUCATION_URL ?? 'http://localhost:3002',
         };
     }
 
