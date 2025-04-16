@@ -1,4 +1,4 @@
-import { Global, Module } from '@nestjs/common';
+import { Global, Logger, Module } from '@nestjs/common';
 import * as admin from 'firebase-admin';
 
 @Global()
@@ -13,7 +13,9 @@ import * as admin from 'firebase-admin';
           const privateKey = process.env.FIREBASE_PRIVATE_KEY;
 
           if (!projectId || !clientEmail || !privateKey) {
-            throw new Error('Firebase admin credentials are not fully set in environment variables.');
+            throw new Error(
+              'Firebase admin credentials are not fully set in environment variables.',
+            );
           }
 
           if (!admin.apps.length) {
@@ -28,7 +30,7 @@ import * as admin from 'firebase-admin';
 
           return admin.app();
         } catch (error) {
-          console.error('❌ Firebase initialization error:', error);
+          logger.error('❌ Firebase initialization error:', error);
           throw error;
         }
       },
@@ -37,3 +39,5 @@ import * as admin from 'firebase-admin';
   exports: ['FIREBASE_ADMIN'],
 })
 export class FirebaseModule {}
+
+const logger = new Logger(FirebaseModule.name);
