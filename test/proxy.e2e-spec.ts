@@ -107,5 +107,18 @@ describe('ProxyController (e2e)', () => {
         expect(res.status).toBe(200);
         expect(res.body.message).toMatch('locked is locked');
     })
+
+    it('GET /users/me should proxy and resolve to actual user info using UID from Firebase', async () => {
+        const res = await request(app.getHttpServer())
+            .get('/users/me')
+            .set('Authorization', 'Bearer mock-token');
+
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual({
+            uid: 'test-uid',
+            name: 'Test User',
+            email: 'test@example.com',
+        });
+    });
 });
 
