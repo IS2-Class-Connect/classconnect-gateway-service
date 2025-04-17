@@ -47,6 +47,21 @@ export class ProxyController {
     return this.reRoute(req, res);
   }
 
+  @Get('/users/me')
+  @UseGuards(FirebaseAuthGuard)
+  async usersGet(@Req() req: Request, @Res() res: Response) {
+    const firebaseUser = req['user'];
+    const uid = firebaseUser?.uid;
+
+    if (!uid) {
+      return res.status(HttpStatus.UNAUTHORIZED).send({ message: 'No user UID found' });
+    }
+
+    req.url = req.url.replaceAll('me', uid);
+    logger.log(`Rewriting /users/me to ${req.url} for rerouting`);
+    await this.reRoute(req, res);
+  }
+
   @All('*')
   @UseGuards(FirebaseAuthGuard)
   async proxy(@Req() req: Request, @Res() res: Response) {

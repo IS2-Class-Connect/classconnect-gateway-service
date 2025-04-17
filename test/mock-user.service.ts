@@ -17,6 +17,13 @@ export function startMockUserService(port: number) {
             res.json({ message: `${id} is not locked`});
         }
     })
+    app.get('/users/test-uid', (_req, res) => {
+        res.status(200).json({
+            uid: 'test-uid',
+            name: 'Test User',
+            email: 'test@example.com',
+        });
+    });
     return app.listen(port);
 }
 
