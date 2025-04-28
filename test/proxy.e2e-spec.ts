@@ -37,6 +37,7 @@ describe('ProxyController (e2e)', () => {
             .compile();
 
         app = moduleFixture.createNestApplication();
+        app.useLogger(false);
         await app.init();
     });
 
@@ -119,6 +120,16 @@ describe('ProxyController (e2e)', () => {
             name: 'Test User',
             email: 'test@example.com',
         });
+    });
+
+    it('PATCH /users/me should update user email and proxy the patch', async () => {
+        const res = await request(app.getHttpServer())
+            .patch('/users/me')
+            .set('Authorization', 'Bearer mock-token')
+            .send({ email: 'new@example.com' });
+
+        expect(res.status).toBe(200);
+        expect(res.body.message).toEqual('Patched user');
     });
 });
 

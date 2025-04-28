@@ -123,7 +123,7 @@ export class ProxyController {
         await onError(error);
       }
 
-      logger.error(`Error during reroute ${error}`);
+      logger.error(`Error during reroute ${error.getResponse()}`);
       return res.status(error.getStatus()).send({ error: error.getResponse() })
     }
   }
