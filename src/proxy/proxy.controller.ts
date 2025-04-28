@@ -9,6 +9,7 @@ import {
   Get,
   Patch,
   Logger,
+  HttpException,
 } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { Request, Response } from 'express';
@@ -52,8 +53,7 @@ export class ProxyController {
     const firebaseUser = req['user'];
     const uid = firebaseUser?.uid;
     if (!uid) {
-      logger.error('no uid inside the request body');
-      throw new Error('No user UID found in body');
+      throw new HttpException('No user UID found in body', HttpStatus.BAD_REQUEST);
     }
     req.url = req.url.replaceAll('me', uid);
     return uid;
@@ -66,9 +66,8 @@ export class ProxyController {
     try {
       this.replaceMe(req);
     } catch (error) {
-      return res.status(HttpStatus.UNAUTHORIZED).send({ message: String(error) });
+      return res.status(error.getStatus()).send({ message: error.getResponse() });
     }
-
     return await this.handleReRoute(req, res, undefined);
   }
 
@@ -80,7 +79,7 @@ export class ProxyController {
     try {
       uid = this.replaceMe(req);
     } catch (error) {
-      return res.status(HttpStatus.UNAUTHORIZED).send({ message: String(error) });
+      return res.status(error.getStatus()).send({ message: error.getResponse() });
     }
 
     const { newEmail } = req.body;
@@ -96,7 +95,7 @@ export class ProxyController {
       }
     }
 
-    return await this.handleReRoute(req, res, async (error) => {
+    return await this.handleReRoute(req, res, async (_) => {
       if (oldEmail) {
         try {
           await admin.auth().updateUser(uid, { email: oldEmail });
@@ -125,20 +124,20 @@ export class ProxyController {
       }
 
       logger.error(`Error during reroute ${error}`);
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({ message: 'Internal Server Error' })
+      return res.status(error.getStatus()).send({ error: error.getResponse() })
     }
   }
 
   async reRoute(req: Request) {
     const parts = req.path.split('/');
     if (parts.length < 2) {
-      throw new Error('No service was provided');
+      throw new HttpException('No service was provided', HttpStatus.BAD_REQUEST);
     }
 
     const service = parts[1];
     const serviceBaseUrl = this.serviceMap[service];
     if (!serviceBaseUrl) {
-      throw new Error(`Unknown service: ${service}`);
+      throw new HttpException(`Unknown service: ${service}`, HttpStatus.BAD_REQUEST);
     }
 
     const targetUrl = `${serviceBaseUrl}${req.path}`;
