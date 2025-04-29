@@ -72,40 +72,48 @@ export class ProxyController {
   }
 
   @Patch('/users/me')
-  @UseGuards(FirebaseAuthGuard)
-  async usersPatch(@Req() req: Request, @Res() res: Response) {
+    @UseGuards(FirebaseAuthGuard)
+    async usersPatch(@Req() req: Request, @Res() res: Response) {
     logger.log('Attempting to patch a user');
     let uid = "";
     try {
-      uid = this.replaceMe(req);
+        uid = this.replaceMe(req);
     } catch (error) {
-      return res.status(error.getStatus()).send({ message: error.getResponse() });
+        return res.status(HttpStatus.BAD_REQUEST).send({ message: 'Failed to resolve user UID' });
     }
 
-    const { newEmail } = req.body;
+    const { email: newEmail } = req.body;
     let oldEmail: string | null = null;
+
     if (newEmail) {
-      try {
+        try {
         const userRecord = await admin.auth().getUser(uid);
         oldEmail = userRecord.email || null;
-        await admin.auth().updateUser(uid, { email: newEmail });
-      } catch (error) {
+
+        if (oldEmail !== newEmail) {
+            await admin.auth().updateUser(uid, { email: newEmail });
+            logger.log(`✅ Updated Firebase email for UID ${uid}`);
+        } else {
+            logger.log(`ℹ️ Emails are the same, no update needed in Firebase.`);
+        }
+        } catch (error) {
         logger.error(`Failed to update email in Firebase: ${error}`);
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({ message: 'Failed to update email in Firebase' });
-      }
+        }
     }
 
     return await this.handleReRoute(req, res, async (_) => {
-      if (oldEmail) {
+        if (oldEmail && oldEmail !== newEmail) {
         try {
-          await admin.auth().updateUser(uid, { email: oldEmail });
-          logger.warn(`Rolled back email change for user ${uid}`);
+            await admin.auth().updateUser(uid, { email: oldEmail });
+            logger.warn(`Rolled back email change for user ${uid}`);
         } catch (rollbackError) {
-          logger.error(`Failed to rollback email for user ${uid}: ${rollbackError}`);
+            logger.error(`Failed to rollback email for user ${uid}: ${rollbackError}`);
         }
-      }
+        }
     });
-  }
+    }
+
 
   @All('*')
   @UseGuards(FirebaseAuthGuard)
