@@ -18,8 +18,22 @@ const mockFirebaseAdmin = {
                 picture: 'https://example.com/pic.png',
             };
         }),
+        updateUser: jest.fn((uid, { email }) => {
+            return Promise.resolve({
+                uid,
+                email,
+                displayName: 'Test User',
+            });
+        }),
+        getUser: jest.fn((uid) => {
+            return Promise.resolve({
+                uid,
+                email: 'test@example.com',
+            });
+        }),
     }),
 };
+
 
 describe('ProxyController (e2e)', () => {
     let app: INestApplication;
@@ -71,7 +85,7 @@ describe('ProxyController (e2e)', () => {
             .set('Authorization', 'Bearer mock-token')
 
         expect(res.status).toBe(400);
-        expect(res.body.error).toMatch(/Unknown service/);
+        expect(res.body.message).toMatch(/Unknown service/);
     });
 
     it('should return 401 for an invalid Firebase token', async () => {
