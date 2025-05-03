@@ -29,7 +29,20 @@ import {
       this.serviceMap = {
         users: process.env.USERS_URL ?? 'http://localhost:3001',
         education: process.env.EDUCATION_URL ?? 'http://localhost:3002',
+        admins: process.env.ADMINS_URL ?? 'http://localhost:3004',
       };
+    }
+
+    @All('/admins')
+    async admins(@Req() req: Request, @Res() res: Response) {
+      logger.log('Attempting to reroute request to admins');
+      return await this.handleReRoute(req, res, undefined); 
+    }
+
+    @All('/admins/*')
+    async adminsPlus(@Req() req: Request, @Res() res: Response) {
+      logger.log('Attempting to reroute request to admins');
+      return await this.handleReRoute(req, res, undefined); 
     }
   
     @Get('/users/*/check-lock-status')

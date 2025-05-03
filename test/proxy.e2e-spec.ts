@@ -4,6 +4,7 @@ import request from 'supertest';
 import { ProxyModule } from '../src/proxy/proxy.module';
 import { startMockUserService } from './mock-user.service';
 import { startMockEducationService } from './mock-education.service';
+import { startMockAdminsService } from './mock-admins.service';
 
 const mockFirebaseAdmin = {
     auth: () => ({
@@ -37,11 +38,12 @@ const mockFirebaseAdmin = {
 
 describe('ProxyController (e2e)', () => {
     let app: INestApplication;
-    let userServer, educationServer;
+    let userServer, educationServer, adminsServer;
 
     beforeAll(async () => {
         userServer = startMockUserService(3001);
         educationServer = startMockEducationService(3002);
+        adminsServer = startMockAdminsService(3004);
 
         const moduleFixture: TestingModule = await Test.createTestingModule({
             imports: [ProxyModule],
@@ -59,6 +61,7 @@ describe('ProxyController (e2e)', () => {
         await app.close();
         userServer.close();
         educationServer.close();
+        adminsServer.close();
     });
 
     it('GET /users/ping should proxy to users service', async () => {
@@ -144,6 +147,25 @@ describe('ProxyController (e2e)', () => {
 
         expect(res.status).toBe(200);
         expect(res.body.message).toEqual('Patched user');
+    });
+
+    it('GET /admins/ping should proxy to admins service', async () => {
+        const res = await request(app.getHttpServer())
+            .get('/admins/ping')
+            .set('Authorization', 'Bearer mock-token');
+
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual({ message: 'Pong from admins service' });
+    });
+
+    it('POST /admins should proxy to admins service', async () => {
+        const res = await request(app.getHttpServer())
+            .post('/admins')
+            .set('Authorization', 'Bearer mock-token')
+            .send({ name: 'New Admin' });
+
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual({ message: 'Created admin' });
     });
 });
 
