@@ -32,6 +32,18 @@ import {
         admins: process.env.ADMINS_URL ?? 'http://localhost:3004',
       };
     }
+
+    @All('/admins')
+    async admins(@Req() req: Request, @Res() res: Response) {
+      logger.log('Attempting to reroute request to admins');
+      return await this.handleReRoute(req, res, undefined); 
+    }
+
+    @All('/admins/*')
+    async adminsPlus(@Req() req: Request, @Res() res: Response) {
+      logger.log('Attempting to reroute request to admins');
+      return await this.handleReRoute(req, res, undefined); 
+    }
   
     @Get('/users/*/check-lock-status')
     async usersCheckLockStatus(@Req() req: Request, @Res() res: Response) {
