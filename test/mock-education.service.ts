@@ -4,7 +4,11 @@ export function startMockEducationService(port: number) {
     const app = express();
     app.use(express.json());
 
-    app.get('/education/ping', (_req, res) => {
+    app.get('/courses/ping', (_req, res) => {
+        res.json({ message: 'Pong from education service' })
+    });
+
+    app.get('/evaluations/ping', (_req, res) => {
         res.json({ message: 'Pong from education service' })
     });
 
