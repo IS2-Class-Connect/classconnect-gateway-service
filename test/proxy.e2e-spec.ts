@@ -73,9 +73,18 @@ describe('ProxyController (e2e)', () => {
         expect(res.body).toEqual({ message: 'Pong from users service' });
     });
 
-    it('GET /education/ping should proxy to education service', async () => {
+    it('GET /courses/ping should proxy to education service', async () => {
         const res = await request(app.getHttpServer())
-            .get('/education/ping')
+            .get('/courses/ping')
+            .set('Authorization', 'Bearer mock-token');
+
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual({ message: 'Pong from education service' });
+    });
+
+    it('GET /evaluations/ping should proxy to education service', async () => {
+        const res = await request(app.getHttpServer())
+            .get('/evaluations/ping')
             .set('Authorization', 'Bearer mock-token');
 
         expect(res.status).toBe(200);
