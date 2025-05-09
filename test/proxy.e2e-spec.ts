@@ -167,5 +167,24 @@ describe('ProxyController (e2e)', () => {
         expect(res.status).toBe(200);
         expect(res.body).toEqual({ message: 'Created admin' });
     });
+
+    it('GET /admin-backend/users/ping should ping the users service', async () => {
+        const res = await request(app.getHttpServer())
+            .get('/admin-backend/users/ping')
+            .set('Authorization', 'Bearer admin-token');
+
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual({ message: 'Pong from users service' });
+    });
+
+    it('GET /admin-backend/education/ping should ping the education service', async () => {
+        const res = await request(app.getHttpServer())
+            .get('/admin-backend/education/ping')
+            .set('Authorization', 'Bearer admin-token');
+
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual({ message: 'Pong from education service' });
+
+    });
 });
 

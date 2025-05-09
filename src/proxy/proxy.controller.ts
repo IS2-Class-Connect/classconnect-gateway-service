@@ -21,6 +21,7 @@ import {
   @Controller('')
   export class ProxyController {
     private readonly serviceMap: Record<string, string>;
+    private readonly adminToken: string | undefined;
   
     constructor(
       private readonly http: HttpService,
@@ -31,6 +32,7 @@ import {
         education: process.env.EDUCATION_URL ?? 'http://localhost:3002',
         admins: process.env.ADMINS_URL ?? 'http://localhost:3004',
       };
+      this.adminToken = process.env.ADMIN_TOKEN ?? "admin-token";
     }
 
     @All('/admins')
@@ -126,6 +128,21 @@ import {
           }
         }
       });
+    }
+
+    @Get('/admin-backend/*')
+    async adminBackendProxy(@Req() req: Request, @Res() res: Response) {
+      const authHeader = req.headers['authorization'];
+      if (!authHeader || authHeader.split('Bearer ')[1] !== this.adminToken) {
+        logger.error('Unauthorized access attempt to admin backend');
+        return res.status(HttpStatus.UNAUTHORIZED).send({ message: 'Unauthorized' });
+      }
+
+      const newPath = req.path.replace('/admin-backend', '');
+      logger.log(`Attempting to reroute request to ${newPath}`);
+      req.url = newPath;
+
+      return await this.handleReRoute(req, res, undefined);
     }
   
     @All('*')
