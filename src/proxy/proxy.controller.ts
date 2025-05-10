@@ -140,8 +140,8 @@ import {
 
       const newPath = req.path.replace('/admin-backend', '');
       logger.log(`Attempting to reroute request to ${newPath}`);
-      req.url = newPath;
 
+      req.url = newPath;
       return await this.handleReRoute(req, res, undefined);
     }
   
