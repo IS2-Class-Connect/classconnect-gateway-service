@@ -11,6 +11,7 @@ export function validateEnv() {
     'JWT_SECRET',
     'USERS_URL',
     'EDUCATION_URL',
+    'ADMIN_TOKEN',
   ];
 
   const missing = requiredVars.filter((key) => !process.env[key]);
