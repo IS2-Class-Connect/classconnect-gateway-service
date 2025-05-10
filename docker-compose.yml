@@ -1,17 +1,13 @@
-version: '3.8'
-
 services:
-  postgres:
-    image: postgres:15
-    restart: always
+  gateway:
+    container_name: gateway
+    build: .
+    networks:
+      - my-network
     ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: pass
-      POSTGRES_DB: classconnect
-    volumes:
-      - pgdata:/var/lib/postgresql/data
+      - 3000:3000
+    env_file: .env
 
-volumes:
-  pgdata:
+networks:
+  my-network:
+    name: classconnect_net
