@@ -8,6 +8,15 @@ services:
       - 3000:3000
     env_file: .env
 
+    environment:
+      JWT_SECRET: your_jwt_secret_here
+      ADMIN_TOKEN: admin-token
+      PORT: 3000
+      DATABASE_URL: postgresql://user:password@localhost:5432/classconnect
+      USERS_URL: http://users:3001
+      EDUCATION_URL: http://education:3002
+      ADMINS_URL: http://admins:3004
+
 networks:
   my-network:
     name: classconnect_net
