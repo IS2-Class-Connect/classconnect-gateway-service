@@ -35,6 +35,41 @@ import {
       };
       this.adminToken = process.env.ADMIN_TOKEN ?? "admin-token";
     }
+    
+    @Patch('/admin-backend/users/:uuid/lock-status')
+    async updateUserLockStatus(
+      @Req() req: Request,
+      @Res() res: Response
+    ) {
+      const { uuid } = req.params;
+      const authHeader = req.headers['authorization'];
+      const { locked } = req.body;
+
+      if (!authHeader || authHeader.split('Bearer ')[1] !== this.adminToken) {
+        return res.status(HttpStatus.UNAUTHORIZED).send({ message: 'Unauthorized' });
+      }
+
+      if (typeof locked !== 'boolean') {
+        return res.status(HttpStatus.BAD_REQUEST).send({ message: '`locked` must be a boolean' });
+      }
+
+      try {
+        await this.firebaseAdmin.auth().updateUser(uuid, { disabled: locked });
+
+        const statusText = locked ? 'Blocked' : 'Unblocked';
+        logger.log(`✅ ${statusText} Firebase user with UID ${uuid}`);
+
+        const newPath = req.path.replace('/admin-backend', '');
+        logger.log(`Attempting to reroute request to ${newPath}`);
+        req.url = newPath;
+        return await this.handleReRoute(req, res, undefined);
+      } catch (error) {
+        logger.error(`❌ Failed to update lock status for user ${uuid}: ${error}`);
+        return res
+          .status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .send({ message: 'Failed to update user lock status' });
+      }
+    }
 
     @All('/admins')
     async admins(@Req() req: Request, @Res() res: Response) {
