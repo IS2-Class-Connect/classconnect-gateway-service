@@ -35,7 +35,41 @@ import {
       };
       this.adminToken = process.env.ADMIN_TOKEN ?? "admin-token";
     }
+  @Post('/admin-backend/users/:uuid/block')
+  async blockUser(@Req() req: Request, @Res() res: Response) {
+    const { uuid } = req.params;
+    const authHeader = req.headers['authorization'];
+    if (!authHeader || authHeader.split('Bearer ')[1] !== this.adminToken) {
+      return res.status(HttpStatus.UNAUTHORIZED).send({ message: 'Unauthorized' });
+    }
 
+    try {
+      await this.firebaseAdmin.auth().updateUser(uuid, { disabled: true });
+      logger.log(`✅ Blocked Firebase user with UID ${uuid}`);
+      return res.status(HttpStatus.OK).send({ message: 'User blocked successfully' });
+    } catch (error) {
+      logger.error(`❌ Failed to block user ${uuid}: ${error}`);
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({ message: 'Failed to block user' });
+    }
+  }
+
+  @Post('/admin-backend/users/:uuid/unblock')
+  async unblockUser(@Req() req: Request, @Res() res: Response) {
+    const { uuid } = req.params;
+    const authHeader = req.headers['authorization'];
+    if (!authHeader || authHeader.split('Bearer ')[1] !== this.adminToken) {
+      return res.status(HttpStatus.UNAUTHORIZED).send({ message: 'Unauthorized' });
+    }
+
+    try {
+      await this.firebaseAdmin.auth().updateUser(uuid, { disabled: false });
+      logger.log(`✅ Unblocked Firebase user with UID ${uuid}`);
+      return res.status(HttpStatus.OK).send({ message: 'User unblocked successfully' });
+    } catch (error) {
+      logger.error(`❌ Failed to unblock user ${uuid}: ${error}`);
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({ message: 'Failed to unblock user' });
+    }
+  }
     @All('/admins')
     async admins(@Req() req: Request, @Res() res: Response) {
       logger.log('Attempting to reroute request to admins');
