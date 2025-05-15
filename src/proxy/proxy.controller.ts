@@ -17,7 +17,7 @@ import { Request, Response } from 'express';
 import { firstValueFrom } from 'rxjs';
 import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
 import * as admin from 'firebase-admin';
-import { sendAssistantAssignmentEmail, sendEnrollmentEmail } from 'src/services/emailService';
+import { sendAssistantAssignmentEmail, sendEnrollmentEmail } from '../services/emailService';
 
 @Controller('')
 export class ProxyController {
