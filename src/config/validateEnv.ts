@@ -12,6 +12,7 @@ export function validateEnv() {
     'USERS_URL',
     'EDUCATION_URL',
     'ADMIN_TOKEN',
+    'EMAIL_PRIVATE_KEY',
   ];
 
   const missing = requiredVars.filter((key) => !process.env[key]);
