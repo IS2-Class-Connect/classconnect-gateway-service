@@ -78,7 +78,7 @@ export class ProxyController {
 
     const { toName, courseName, studentEmail } = req.body;
     try {
-      sendEnrollmentEmail(toName, courseName, studentEmail);
+      await sendEnrollmentEmail(toName, courseName, studentEmail);
     } catch (e) {
       if (e instanceof HttpException) {
         return res.status(e.getStatus()).send(e.message)
