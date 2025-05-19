@@ -200,7 +200,7 @@ export class ProxyController {
     });
   }
 
-  @Get('/admin-backend/*')
+  @All('/admin-backend/*')
   async adminBackendProxy(@Req() req: Request, @Res() res: Response) {
     const authHeader = req.headers['authorization'];
     if (!authHeader || authHeader.split('Bearer ')[1] !== this.adminToken) {
