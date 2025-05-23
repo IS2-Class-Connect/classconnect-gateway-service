@@ -24,6 +24,7 @@ import axios, { AxiosResponse } from 'axios';
 export class ProxyController {
   private readonly serviceMap: Record<string, string>;
   private readonly gatewayToken: string | undefined;
+  private readonly expoPushApiUrl: string;
 
   constructor(
     private readonly http: HttpService,
@@ -36,6 +37,7 @@ export class ProxyController {
       admins: process.env.ADMINS_URL ?? 'http://localhost:3004',
     };
     this.gatewayToken = process.env.GATEWAY_TOKEN ?? "admin-token";
+    this.expoPushApiUrl = 'https://exp.host/--/api/v2/push/send';
   }
 
   validateGatewayToken(req: Request): boolean {
@@ -45,7 +47,7 @@ export class ProxyController {
 
   @Post('/notifications')
   async notifyUser(@Req() req: Request, @Res() res: Response) {
-    if (this.validateGatewayToken(req)) {
+    if (!this.validateGatewayToken(req)) {
       return res.status(HttpStatus.UNAUTHORIZED).send({ message: 'Unauthorized' });
     }
 
@@ -66,7 +68,7 @@ export class ProxyController {
 
     // Send message using the expo api
     try {
-      await axios.post('https://exp.host/--/api/v2/push/send', {
+      await axios.post(this.expoPushApiUrl, {
         to: pushToken,
         title: title,
         body: body,
@@ -83,7 +85,7 @@ export class ProxyController {
     @Req() req: Request,
     @Res() res: Response
  ) {
-    if (this.validateGatewayToken(req)) {
+    if (!this.validateGatewayToken(req)) {
       return res.status(HttpStatus.UNAUTHORIZED).send({ message: 'Unauthorized' });
     }
 
