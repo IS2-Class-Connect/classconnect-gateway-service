@@ -18,11 +18,13 @@ import { firstValueFrom } from 'rxjs';
 import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
 import * as admin from 'firebase-admin';
 import { sendAssistantAssignmentEmail, sendEnrollmentEmail } from '../services/emailService';
+import axios, { AxiosResponse } from 'axios';
 
 @Controller('')
 export class ProxyController {
   private readonly serviceMap: Record<string, string>;
-  private readonly adminToken: string | undefined;
+  private readonly gatewayToken: string | undefined;
+  private readonly expoPushApiUrl: string;
 
   constructor(
     private readonly http: HttpService,
@@ -34,21 +36,61 @@ export class ProxyController {
       evaluations: process.env.EDUCATION_URL ?? 'http://localhost:3002',
       admins: process.env.ADMINS_URL ?? 'http://localhost:3004',
     };
-    this.adminToken = process.env.ADMIN_TOKEN ?? "admin-token";
+    this.gatewayToken = process.env.GATEWAY_TOKEN ?? "admin-token";
+    this.expoPushApiUrl = 'https://exp.host/--/api/v2/push/send';
+  }
+
+  validateGatewayToken(req: Request): boolean {
+    const authHeader = req.headers['authorization'];
+    return (authHeader !== undefined && (authHeader.split('Bearer ')[1] === this.gatewayToken));
+  }
+
+  @Post('/notifications')
+  async notifyUser(@Req() req: Request, @Res() res: Response) {
+    if (!this.validateGatewayToken(req)) {
+      return res.status(HttpStatus.UNAUTHORIZED).send({ message: 'Unauthorized' });
+    }
+
+    const { uuid, title, body } = req.body;
+    const url = `${this.serviceMap['users']}/users/${uuid}`;
+
+    let usersRes: AxiosResponse;
+    try {
+      usersRes = await axios.get(url);
+    } catch (e) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({ message: "Couldn't reach users service"});
+    }
+
+    const { pushToken } = usersRes.data;
+    if (!pushToken) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({ message: "Received invalid data from users service" });
+    }
+
+    // Send message using the expo api
+    try {
+      await axios.post(this.expoPushApiUrl, {
+        to: pushToken,
+        title: title,
+        body: body,
+        sound: 'default',
+      });
+      return res.status(200).send({ message: 'Notification sent successfully' });
+    } catch (error) {
+      return res.status(500).send({ message: 'Failed to send Expo notification' });
+    }
   }
 
   @Patch('/admin-backend/users/:uuid/lock-status')
   async updateUserLockStatus(
     @Req() req: Request,
     @Res() res: Response
-  ) {
-    const { uuid } = req.params;
-    const authHeader = req.headers['authorization'];
-    const { locked } = req.body;
-
-    if (!authHeader || authHeader.split('Bearer ')[1] !== this.adminToken) {
+ ) {
+    if (!this.validateGatewayToken(req)) {
       return res.status(HttpStatus.UNAUTHORIZED).send({ message: 'Unauthorized' });
     }
+
+    const { uuid } = req.params;
+    const { locked } = req.body;
 
     if (typeof locked !== 'boolean') {
       return res.status(HttpStatus.BAD_REQUEST).send({ message: '`locked` must be a boolean' });
@@ -203,7 +245,7 @@ export class ProxyController {
   @All('/admin-backend/*')
   async adminBackendProxy(@Req() req: Request, @Res() res: Response) {
     const authHeader = req.headers['authorization'];
-    if (!authHeader || authHeader.split('Bearer ')[1] !== this.adminToken) {
+    if (!authHeader || authHeader.split('Bearer ')[1] !== this.gatewayToken) {
       logger.error('Unauthorized access attempt to admin backend');
       return res.status(HttpStatus.UNAUTHORIZED).send({ message: 'Unauthorized' });
     }
