@@ -10,7 +10,7 @@ services:
 
     environment:
       JWT_SECRET: your_jwt_secret_here
-      ADMIN_TOKEN: admin-token
+      GATEWAY_TOKEN: gateway-token
       PORT: 3000
       DATABASE_URL: postgresql://user:password@localhost:5432/classconnect
       USERS_URL: http://users:3001
