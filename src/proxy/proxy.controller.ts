@@ -84,8 +84,8 @@ export class ProxyController {
 
       return res.status(200).send({ message: 'Notification sent successfully' });
     } catch (error) {
-        logger.warn(`Expo push notification faied: ${error}`);
-      return res.status(500).send({ message: `Failed to send Expo notification: ${error}` });
+        logger.warn(`Expo push notification failed: ${error}`);
+      return res.status(500).send({ message: 'Failed to send Expo notification' });
     }
   }
 
