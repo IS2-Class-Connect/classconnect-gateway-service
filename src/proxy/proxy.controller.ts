@@ -82,6 +82,7 @@ export class ProxyController {
         throw new Error('receipt returned an error');
       }
 
+      logger.log(`Sent push notification with title '${title}' to user ${uuid}`);
       return res.status(200).send({ message: 'Notification sent successfully' });
     } catch (error) {
         logger.warn(`Expo push notification failed: ${error}`);
