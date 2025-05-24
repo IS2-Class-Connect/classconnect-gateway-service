@@ -37,7 +37,7 @@ export class ProxyController {
       evaluations: process.env.EDUCATION_URL ?? 'http://localhost:3002',
       admins: process.env.ADMINS_URL ?? 'http://localhost:3004',
     };
-    this.gatewayToken = process.env.GATEWAY_TOKEN ?? "admin-token";
+    this.gatewayToken = process.env.GATEWAY_TOKEN ?? "gateway-token";
     this.expo = new Expo();
   }
 
