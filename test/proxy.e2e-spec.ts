@@ -180,7 +180,7 @@ describe('ProxyController (e2e)', () => {
     it('GET /admin-backend/users/ping should ping the users service', async () => {
         const res = await request(app.getHttpServer())
             .get('/admin-backend/users/ping')
-            .set('Authorization', 'Bearer admin-token');
+            .set('Authorization', 'Bearer gateway-token');
 
         expect(res.status).toBe(200);
         expect(res.body).toEqual({ message: 'Pong from users service' });

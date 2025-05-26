@@ -19,12 +19,13 @@ import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
 import * as admin from 'firebase-admin';
 import { sendAssistantAssignmentEmail, sendEnrollmentEmail } from '../services/emailService';
 import axios, { AxiosResponse } from 'axios';
+import { Expo, ExpoPushMessage, ExpoPushTicket } from 'expo-server-sdk';
 
 @Controller('')
 export class ProxyController {
   private readonly serviceMap: Record<string, string>;
   private readonly gatewayToken: string | undefined;
-  private readonly expoPushApiUrl: string;
+  private expo: Expo;
 
   constructor(
     private readonly http: HttpService,
@@ -36,8 +37,8 @@ export class ProxyController {
       evaluations: process.env.EDUCATION_URL ?? 'http://localhost:3002',
       admins: process.env.ADMINS_URL ?? 'http://localhost:3004',
     };
-    this.gatewayToken = process.env.GATEWAY_TOKEN ?? "admin-token";
-    this.expoPushApiUrl = 'https://exp.host/--/api/v2/push/send';
+    this.gatewayToken = process.env.GATEWAY_TOKEN ?? "gateway-token";
+    this.expo = new Expo();
   }
 
   validateGatewayToken(req: Request): boolean {
@@ -53,6 +54,7 @@ export class ProxyController {
 
     const { uuid, title, body, topic } = req.body;
     const url = `${this.serviceMap['users']}/users/${uuid}`;
+    logger.log(`Attempting to notify user ${uuid} through push notification`);
 
     let usersRes: AxiosResponse;
     try {
@@ -72,15 +74,24 @@ export class ProxyController {
     }
 
     // Send message using the expo api
+    const msg: ExpoPushMessage = {
+      to: pushToken,
+      title,
+      body,
+      sound: 'default',
+    };
+
     try {
-      await axios.post(this.expoPushApiUrl, {
-        to: pushToken,
-        title: title,
-        body: body,
-        sound: 'default',
-      });
+      const receipts = await this.expo.sendPushNotificationsAsync([msg]);
+      const failed = receipts.find((r: ExpoPushTicket) => r.status === 'error');
+      if (failed) {
+        throw new Error('receipt returned an error');
+      }
+
+      logger.log(`Sent push notification with title '${title}' to user ${uuid}`);
       return res.status(200).send({ message: 'Notification sent successfully' });
     } catch (error) {
+        logger.warn(`Expo push notification failed: ${error}`);
       return res.status(500).send({ message: 'Failed to send Expo notification' });
     }
   }
