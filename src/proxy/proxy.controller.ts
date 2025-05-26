@@ -51,7 +51,7 @@ export class ProxyController {
       return res.status(HttpStatus.UNAUTHORIZED).send({ message: 'Unauthorized' });
     }
 
-    const { uuid, title, body } = req.body;
+    const { uuid, title, body, topic } = req.body;
     const url = `${this.serviceMap['users']}/users/${uuid}`;
 
     let usersRes: AxiosResponse;
@@ -61,9 +61,24 @@ export class ProxyController {
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({ message: "Couldn't reach users service"});
     }
 
-    const { pushToken } = usersRes.data;
+    const {
+      pushToken,
+      pushTaskAssignment,
+      pushMessageReceived,
+      pushDeadlineReminder,
+    } = usersRes.data;
+
     if (!pushToken) {
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({ message: "Received invalid data from users service" });
+    }
+
+    // Filter notifications with user's configuration
+    if (topic == 'task-assignment' && !pushTaskAssignment) {
+      return res.status(200).send({ message: 'user has task assignment silenced' });
+    } else if (topic == 'message-received' && !pushMessageReceived) {
+      return res.status(200).send({ message: 'user has new messages silenced' });
+    } else if (topic == 'deadline-reminder' && !pushDeadlineReminder) {
+      return res.status(200).send({ message: 'user has deadline reminders silenced' });
     }
 
     // Send message using the expo api
