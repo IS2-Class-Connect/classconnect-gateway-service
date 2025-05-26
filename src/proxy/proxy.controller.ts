@@ -61,24 +61,14 @@ export class ProxyController {
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({ message: "Couldn't reach users service"});
     }
 
-    const {
-      pushToken,
-      pushTaskAssignment,
-      pushMessageReceived,
-      pushDeadlineReminder,
-    } = usersRes.data;
-
+    const { pushToken } = usersRes.data;
     if (!pushToken) {
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({ message: "Received invalid data from users service" });
     }
 
-    // Filter notifications with user's configuration
-    if (topic == 'task-assignment' && !pushTaskAssignment) {
-      return res.status(200).send({ message: 'user has task assignment silenced' });
-    } else if (topic == 'message-received' && !pushMessageReceived) {
-      return res.status(200).send({ message: 'user has new messages silenced' });
-    } else if (topic == 'deadline-reminder' && !pushDeadlineReminder) {
-      return res.status(200).send({ message: 'user has deadline reminders silenced' });
+    const [shouldSend, message] = this.shouldSendNotification(usersRes.data, topic);
+    if (!shouldSend) {
+      return res.status(200).send({ message });
     }
 
     // Send message using the expo api
@@ -129,11 +119,55 @@ export class ProxyController {
     }
   }
 
+  shouldSendNotification(user: any, topic: string): [boolean, string] {
+    const {
+      pushTaskAssignment,
+      pushMessageReceived,
+      pushDeadlineReminder,
+      emailEnrollment,
+      emailAssistantAssignment,
+    } = user;
+
+    if (topic == 'task-assignment' && !pushTaskAssignment) {
+      return [false, 'user has task assignment silenced'];
+    } else if (topic == 'message-received' && !pushMessageReceived) {
+      return [false, 'user has new messages silenced'];
+    } else if (topic == 'deadline-reminder' && !pushDeadlineReminder) {
+      return [false, 'user has deadline reminders silenced'];
+    } else if (topic == 'enrollment' && !emailEnrollment) {
+      return [false, 'user has enrollment silenced'];
+    } else if (topic == 'assistant-assignment' && !emailAssistantAssignment) {
+      return [false, 'user has assistant assignments silenced'];
+    }
+
+    return [true, ""];
+  }
+
   @Post('/email/student-enrollment')
   async sendEnrollmentEmail(@Req() req: Request, @Res() res: Response) {
     logger.log('Attempting to send email');
 
-    const { toName, courseName, studentEmail } = req.body;
+    const {
+      uuid,
+      toName,
+      courseName,
+      studentEmail,
+      topic,
+    } = req.body;
+
+    const url = `${this.serviceMap['users']}/users/${uuid}`;
+    let usersRes: AxiosResponse;
+    try {
+      usersRes = await axios.get(url);
+    } catch (e) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({ message: "Couldn't reach users service"});
+    }
+
+    const [shouldSend, message] = this.shouldSendNotification(usersRes.data, topic)
+    if (!shouldSend) {
+      return res.status(200).send({ message });
+    }
+
     try {
       await sendEnrollmentEmail(toName, courseName, studentEmail);
     } catch (e) {
@@ -150,7 +184,28 @@ export class ProxyController {
   async sendAssistantAssignmentEmail(@Req() req: Request, @Res() res: Response) {
     logger.log('Attempting to send email');
 
-    const { toName, professorName, courseName, studentEmail } = req.body;
+    const {
+      uuid,
+      toName,
+      professorName,
+      courseName,
+      studentEmail,
+      topic,
+    } = req.body;
+    
+    const url = `${this.serviceMap['users']}/users/${uuid}`;
+    let usersRes: AxiosResponse;
+    try {
+      usersRes = await axios.get(url);
+    } catch (e) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({ message: "Couldn't reach users service"});
+    }
+
+    const [shouldSend, message] = this.shouldSendNotification(usersRes.data, topic)
+    if (!shouldSend) {
+      return res.status(200).send({ message });
+    }
+
     try {
       await sendAssistantAssignmentEmail(toName, professorName, courseName, studentEmail)
     } catch (e) {
