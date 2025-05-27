@@ -135,7 +135,6 @@ export class GatewayController {
   async usersGet(@Req() req: Request, @Res() res: Response) {
     logger.log('Attempting to get a user');
     const uid = this.replaceMe(req);
-    req.url = req.url.replaceAll('me', uid);
     await this.proxy.reRoute(req, res, undefined);
   }
 
