@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { ProxyModule } from '../src/proxy/proxy.module';
+import { GatewayModule } from '../src/controllers/gateway.module';
 import { startMockUserService } from './mock-user.service';
 import { startMockEducationService } from './mock-education.service';
 import { startMockAdminsService } from './mock-admins.service';
@@ -46,7 +46,7 @@ describe('ProxyController (e2e)', () => {
         adminsServer = startMockAdminsService(3004);
 
         const moduleFixture: TestingModule = await Test.createTestingModule({
-            imports: [ProxyModule],
+            imports: [GatewayModule],
         })
             .overrideProvider('FIREBASE_ADMIN')
             .useValue(mockFirebaseAdmin)
@@ -186,4 +186,3 @@ describe('ProxyController (e2e)', () => {
         expect(res.body).toEqual({ message: 'Pong from users service' });
     });
 });
-

@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { ProxyModule } from './proxy/proxy.module';
+import { GatewayModule } from './controllers/gateway.module';
 import { validateEnv } from './config/validateEnv';
 import 'dotenv/config';
 import { Logger } from '@nestjs/common';
@@ -7,7 +7,7 @@ import { Logger } from '@nestjs/common';
 async function bootstrap() {
   validateEnv();
 
-  const app = await NestFactory.create(ProxyModule);
+  const app = await NestFactory.create(GatewayModule);
 
   app.enableCors({
     origin: true,
@@ -16,10 +16,9 @@ async function bootstrap() {
     credentials: true,
   });
 
-  await app.listen(process.env.PORT ?? 3000);
   logger.log(`Server running at port ${process.env.PORT ?? 3000}`);
+  await app.listen(process.env.PORT ?? 3000);
 }
 
 void bootstrap();
-
 const logger = new Logger('Main');
