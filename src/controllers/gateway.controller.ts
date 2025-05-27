@@ -45,7 +45,7 @@ export class GatewayController {
     try {
       return (await firstValueFrom(this.http.get(url))).data;
     } catch (e) {
-      throw new HttpException("Coudn't reach users service", HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException("Couldn't reach users service", HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -63,6 +63,7 @@ export class GatewayController {
   }
 
   @Post('/email/student-enrollment')
+  @UseGuards(GatewayTokenGuard)
   async sendEnrollmentEmail(
     @Body('uuid') uid: string,
     @Body('toName') toName: string,
