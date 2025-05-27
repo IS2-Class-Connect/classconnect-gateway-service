@@ -71,8 +71,9 @@
       "^.+\\.(t|j)s$": "ts-jest"
     },
     "collectCoverageFrom": [
-      "src/auth/*",
-      "src/proxy/*"
+      "src/controllers/*",
+      "src/services/*",
+      "src/auth/*"
     ],
     "coverageDirectory": "coverage",
     "testEnvironment": "node"

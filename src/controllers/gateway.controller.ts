@@ -58,7 +58,7 @@ export class GatewayController {
     @Body('topic') topic: string,
   ) {
     logger.log(`Attempting to notify user ${uid} through push notification`);
-    const user = this.fetchUser(uid);
+    const user = await this.fetchUser(uid);
     await this.notification.notifyUser(user, title, body, topic);
   }
 
@@ -71,7 +71,7 @@ export class GatewayController {
     @Body('topic') topic: string,
   ) {
     logger.log('Attempting to send enrollment email');
-    const user = this.fetchUser(uid);
+    const user = await this.fetchUser(uid);
     await this.notification.sendEnrollmentEmail(user, toName, courseName, studentEmail, topic);
   }
 
@@ -86,38 +86,38 @@ export class GatewayController {
     @Body('topic') topic: string,
   ) {
     logger.log('Attempting to send assistant assignment email');
-    const user = this.fetchUser(uid);
+    const user = await this.fetchUser(uid);
     await this.notification.sendAssistantAssignmentEmail(user, toName, professorName, courseName, studentEmail, topic);
   }
 
   @All('/admins')
   async admins(@Req() req: Request, @Res() res: Response) {
     logger.log('Attempting to reroute request to admins');
-    return await this.proxy.reRoute(req, res, undefined);
+    await this.proxy.reRoute(req, res, undefined);
   }
 
   @All('/admins/*')
   async adminsPlus(@Req() req: Request, @Res() res: Response) {
     logger.log('Attempting to reroute request to admins');
-    return await this.proxy.reRoute(req, res, undefined);
+    await this.proxy.reRoute(req, res, undefined);
   }
 
   @Get('/users/*/check-lock-status')
   async usersCheckLockStatus(@Req() req: Request, @Res() res: Response) {
     logger.log('Attempting to check-lock-status');
-    return await this.proxy.reRoute(req, res, undefined);
+    await this.proxy.reRoute(req, res, undefined);
   }
 
   @Patch('/users/*/failed-attempts')
   async usersFailedAttempts(@Req() req: Request, @Res() res: Response) {
     logger.log('Attempting to modify failed-attempts');
-    return await this.proxy.reRoute(req, res, undefined);
+    await this.proxy.reRoute(req, res, undefined);
   }
 
   @Post('/users')
   async usersCreate(@Req() req: Request, @Res() res: Response) {
     logger.log('Attempting to post a new user');
-    return await this.proxy.reRoute(req, res, undefined);
+    await this.proxy.reRoute(req, res, undefined);
   }
 
   replaceMe(req: Request): string {
@@ -134,26 +134,17 @@ export class GatewayController {
   @UseGuards(FirebaseAuthGuard)
   async usersGet(@Req() req: Request, @Res() res: Response) {
     logger.log('Attempting to get a user');
-    try {
-      this.replaceMe(req);
-    } catch (error) {
-      return res.status(error.getStatus()).send({ message: error.getResponse() });
-    }
-
-    return await this.proxy.reRoute(req, res, undefined);
+    const uid = this.replaceMe(req);
+    req.url = req.url.replaceAll('me', uid);
+    await this.proxy.reRoute(req, res, undefined);
   }
 
   @Patch('/users/me')
   @UseGuards(FirebaseAuthGuard)
   async usersPatch(@Req() req: Request, @Res() res: Response) {
     logger.log('Attempting to patch a user');
-    let uid = "";
-    try {
-      uid = this.replaceMe(req);
-    } catch (error) {
-      return res.status(HttpStatus.BAD_REQUEST).send({ message: 'Failed to resolve user UID' });
-    }
 
+    const uid = this.replaceMe(req);
     const { email: newEmail } = req.body;
     let oldEmail: string | null = null;
 
@@ -170,11 +161,11 @@ export class GatewayController {
         }
       } catch (error) {
         logger.error(`Failed to update email in Firebase: ${error}`);
-        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({ message: 'Failed to update email in Firebase' });
+        throw new HttpException('Failed to update email in Firebase', HttpStatus.INTERNAL_SERVER_ERROR);
       }
     }
 
-    return await this.proxy.reRoute(req, res, async (_) => {
+    await this.proxy.reRoute(req, res, async (_) => {
       if (oldEmail && oldEmail !== newEmail) {
         try {
           await this.firebaseAdmin.auth().updateUser(uid, { email: oldEmail });
@@ -192,7 +183,7 @@ export class GatewayController {
     const newPath = req.path.replace('/admin-backend', '');
     logger.log(`Attempting to reroute request to ${newPath}`);
     req.url = newPath;
-    return await this.proxy.reRoute(req, res, undefined);
+    await this.proxy.reRoute(req, res, undefined);
   }
 
   @Patch('/admin-backend/users/:uid/lock-status')
@@ -215,9 +206,7 @@ export class GatewayController {
       await this.proxy.reRoute(req, res, undefined);
     } catch (error) {
       logger.error(`❌ Failed to update lock status for user ${uid}: ${error}`);
-      return res
-        .status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .send({ message: 'Failed to update user lock status' });
+      throw new HttpException('Failed to update user lock status', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -225,7 +214,7 @@ export class GatewayController {
   @UseGuards(FirebaseAuthGuard)
   async default(@Req() req: Request, @Res() res: Response) {
     logger.log('Attempting to reroute request');
-    return await this.proxy.reRoute(req, res, undefined);
+    await this.proxy.reRoute(req, res, undefined);
   }
 }
 
