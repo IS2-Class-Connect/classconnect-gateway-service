@@ -70,7 +70,7 @@ export class GatewayController {
     @Body('studentEmail') studentEmail: string,
     @Body('topic') topic: string,
   ) {
-    logger.log('Attempting to send email');
+    logger.log('Attempting to send enrollment email');
     const user = this.fetchUser(uid);
     await this.notification.sendEnrollmentEmail(user, toName, courseName, studentEmail, topic);
   }
@@ -85,7 +85,7 @@ export class GatewayController {
     @Body('studentEmail') studentEmail: string,
     @Body('topic') topic: string,
   ) {
-    logger.log('Attempting to send email');
+    logger.log('Attempting to send assistant assignment email');
     const user = this.fetchUser(uid);
     await this.notification.sendAssistantAssignmentEmail(user, toName, professorName, courseName, studentEmail, topic);
   }
