@@ -8,6 +8,7 @@ import {
 import { HttpService } from '@nestjs/axios';
 import { Request, Response } from 'express';
 import { firstValueFrom } from 'rxjs';
+import { AxiosResponse } from 'axios';
 
 @Injectable()
 export class ProxyService {
@@ -37,8 +38,8 @@ export class ProxyService {
       if (onError) {
         await onError(error);
       }
-      const message = error?.response?.data?.message || error?.message || 'Unknown error';
-      const status = error?.response?.status || error?.status || 500;
+      const message = error?.response?.data?.error || error?.response?.data?.message || error?.message || error?.error || 'Unknown error';
+      const status = error?.response?.status || error?.status || HttpStatus.INTERNAL_SERVER_ERROR;
       logger.error(`Error during reroute: ${message}`);
       throw new HttpException(message, status);
     }
@@ -53,7 +54,7 @@ export class ProxyService {
     *
     * @throws {HttpException} - If the service is invalid, not provided or the actual request fails.
     */
-  private async tryReRoute(req: Request): Promise<any> {
+  private async tryReRoute(req: Request): Promise<AxiosResponse> {
     const parts = req.path.split('/');
     if (parts.length < 2) {
       throw new HttpException('No service was provided', HttpStatus.BAD_REQUEST);
