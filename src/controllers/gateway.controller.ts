@@ -63,6 +63,7 @@ export class GatewayController {
   }
 
   @Post('/email/student-enrollment')
+  @UseGuards(GatewayTokenGuard)
   async sendEnrollmentEmail(
     @Body('uuid') uid: string,
     @Body('toName') toName: string,
