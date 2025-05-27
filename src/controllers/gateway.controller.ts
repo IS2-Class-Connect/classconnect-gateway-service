@@ -22,6 +22,7 @@ import { ProxyService } from '../services/proxy.service';
 import { NotificationService } from '../services/notification.service';
 import * as admin from 'firebase-admin';
 import { firstValueFrom } from 'rxjs';
+import { AxiosResponse } from 'axios';
 
 @Controller('')
 export class GatewayController {
@@ -41,12 +42,23 @@ export class GatewayController {
 
 
   async fetchUser(uid: string): Promise<any> {
+    logger.log(`Fetching user ${uid} from users`);
     const url = `${this.serviceMap['users']}/users/${uid}`;
+
+    let res: AxiosResponse;
     try {
-      return (await firstValueFrom(this.http.get(url))).data;
+      res = await firstValueFrom(this.http.get(url));
     } catch (e) {
-      throw new HttpException("Couldn't reach users service", HttpStatus.INTERNAL_SERVER_ERROR);
+      logger.warn(`Coudn't reach users service: ${e}`)
+
+      throw new HttpException(e.repsonse, e.status);
     }
+
+    if (res.data?.error) {
+      throw new HttpException(`Failed to fetch user: ${res.data.error}`, 500);
+    }
+
+    return res.data;
   }
 
   @Post('/notifications')
@@ -126,7 +138,7 @@ export class GatewayController {
     const firebaseUser = req['user'];
     const uid = firebaseUser?.uid;
     if (!uid) {
-      throw new HttpException('No user UID found in body', HttpStatus.BAD_REQUEST);
+      throw new HttpException(`Couldn't replace me, user uid wasn't found in body`, HttpStatus.BAD_REQUEST);
     }
     req.url = req.url.replaceAll('me', uid);
     return uid;

@@ -29,6 +29,12 @@ export function startMockUserService(port: number) {
         });
     });
 
+    app.get('/users/fail-uid', (_req, res) => {
+        res.status(404).json({
+            message: 'User was not found'
+        })
+    })
+
     app.patch('/users/:id', (req, res) => {
         let id = req.params.id;
         const { email } = req.body;
