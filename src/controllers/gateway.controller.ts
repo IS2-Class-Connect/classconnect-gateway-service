@@ -134,8 +134,7 @@ export class GatewayController {
   @UseGuards(FirebaseAuthGuard)
   async usersGet(@Req() req: Request, @Res() res: Response) {
     logger.log('Attempting to get a user');
-    const uid = this.replaceMe(req);
-    req.url = req.url.replaceAll('me', uid);
+    this.replaceMe(req);
     await this.proxy.reRoute(req, res, undefined);
   }
 
