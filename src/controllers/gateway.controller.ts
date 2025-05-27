@@ -78,6 +78,7 @@ export class GatewayController {
 
 
   @Post('/email/assistant-assignment')
+  @UseGuards(GatewayTokenGuard)
   async sendAssistantAssignmentEmail(
     @Body('uuid') uid: string,
     @Body('toName') toName: string,
@@ -91,31 +92,31 @@ export class GatewayController {
     await this.notification.sendAssistantAssignmentEmail(user, toName, professorName, courseName, studentEmail, topic);
   }
 
-  @All('/admins')
+  @All('/admins') // backoffice implements it's own auth
   async admins(@Req() req: Request, @Res() res: Response) {
     logger.log('Attempting to reroute request to admins');
     await this.proxy.reRoute(req, res, undefined);
   }
 
-  @All('/admins/*')
+  @All('/admins/*') // backoffice implements it's own auth
   async adminsPlus(@Req() req: Request, @Res() res: Response) {
     logger.log('Attempting to reroute request to admins');
     await this.proxy.reRoute(req, res, undefined);
   }
 
-  @Get('/users/*/check-lock-status')
+  @Get('/users/*/check-lock-status') // unprotected
   async usersCheckLockStatus(@Req() req: Request, @Res() res: Response) {
     logger.log('Attempting to check-lock-status');
     await this.proxy.reRoute(req, res, undefined);
   }
 
-  @Patch('/users/*/failed-attempts')
+  @Patch('/users/*/failed-attempts') // unprotected
   async usersFailedAttempts(@Req() req: Request, @Res() res: Response) {
     logger.log('Attempting to modify failed-attempts');
     await this.proxy.reRoute(req, res, undefined);
   }
 
-  @Post('/users')
+  @Post('/users') // unprotected
   async usersCreate(@Req() req: Request, @Res() res: Response) {
     logger.log('Attempting to post a new user');
     await this.proxy.reRoute(req, res, undefined);
