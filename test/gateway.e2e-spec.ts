@@ -5,6 +5,7 @@ import { GatewayModule } from '../src/controllers/gateway.module';
 import { startMockUserService } from './mock-user.service';
 import { startMockEducationService } from './mock-education.service';
 import { startMockAdminsService } from './mock-admins.service';
+import { NotificationService } from '../src/services/notification.service';
 
 const mockFirebaseAdmin = {
     auth: () => ({
@@ -23,7 +24,7 @@ const mockFirebaseAdmin = {
             return Promise.resolve({
                 uid,
                 email,
-                displayName: 'Test User',
+                name: 'Test User',
             });
         }),
         getUser: jest.fn((uid) => {
@@ -38,7 +39,7 @@ const mockFirebaseAdmin = {
 
 describe('ProxyController (e2e)', () => {
     let app: INestApplication;
-    let userServer, educationServer, adminsServer;
+    let userServer, educationServer, adminsServer, notificationService;
 
     beforeAll(async () => {
         userServer = startMockUserService(3001);
@@ -52,6 +53,10 @@ describe('ProxyController (e2e)', () => {
             .useValue(mockFirebaseAdmin)
             .compile();
 
+
+    
+        notificationService = moduleFixture.get<NotificationService>(NotificationService);
+        jest.spyOn(notificationService, 'notifyUser').mockImplementation(async () => Promise.resolve());
         app = moduleFixture.createNestApplication();
         await app.init();
     });
@@ -175,6 +180,29 @@ describe('ProxyController (e2e)', () => {
         expect(res.status).toBe(200);
         expect(res.body).toEqual({ message: 'Created admin' });
     });
+
+    it('should notify a user via POST /notifications', async () => {
+        const response = await request(app.getHttpServer())
+          .post('/notifications')
+          .set('Authorization', 'Bearer gateway-token')
+          .send({
+            uuid: 'test-uid',
+            title: 'Test Notification',
+            body: 'You have a new message.',
+            topic: 'general',
+          });
+
+        expect(response.status).toBe(201); // or the default if you didn't set a status
+        expect(notificationService.notifyUser).toHaveBeenCalledWith(
+          expect.objectContaining({
+            uid: 'test-uid',
+            email: expect.any(String),
+          }),
+          'Test Notification',
+          'You have a new message.',
+          'general',
+        );
+      });
 
     it('GET /admin-backend/users/ping should ping the users service', async () => {
         const res = await request(app.getHttpServer())
