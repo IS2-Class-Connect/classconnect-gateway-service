@@ -39,6 +39,16 @@ export function startMockUserService(port: number) {
         });
     })
 
+    app.patch('/users/:id/lock-status', (req, res) => {
+        let id = req.params.id;
+        const { locked } = req.body;
+        res.status(200).json({
+            uid: id,
+            locked,
+            message: (locked ? 'locked' : 'unlocked') + ' user',
+        })
+    })
+
     return app.listen(port);
 }
 
