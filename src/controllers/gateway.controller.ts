@@ -49,7 +49,9 @@ export class GatewayController {
     try {
       res = await firstValueFrom(this.http.get(url));
     } catch (e) {
-      throw new HttpException(`Couldn't reach users service: ${e}`, HttpStatus.INTERNAL_SERVER_ERROR);
+      logger.warn(`Coudn't reach users service: ${e}`)
+
+      throw new HttpException(e.repsonse, e.status);
     }
 
     if (res.data?.error) {
