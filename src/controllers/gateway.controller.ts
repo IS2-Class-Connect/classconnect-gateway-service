@@ -16,7 +16,7 @@ import {
 } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { Request, Response } from 'express';
-import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
+import { MultiAuthGuard } from '../auth/firebase-auth.guard';
 import { GatewayTokenGuard } from '../auth/gateway-auth.guard';
 import { ProxyService } from '../services/proxy.service';
 import { NotificationService } from '../services/notification.service';
@@ -145,7 +145,7 @@ export class GatewayController {
   }
 
   @Get('/users/me')
-  @UseGuards(FirebaseAuthGuard)
+  @UseGuards(MultiAuthGuard)
   async usersGet(@Req() req: Request, @Res() res: Response) {
     logger.log('Attempting to get a user');
     this.replaceMe(req);
@@ -153,7 +153,7 @@ export class GatewayController {
   }
 
   @Patch('/users/me')
-  @UseGuards(FirebaseAuthGuard)
+  @UseGuards(MultiAuthGuard)
   async usersPatch(@Req() req: Request, @Res() res: Response) {
     logger.log('Attempting to patch a user');
 
@@ -224,7 +224,7 @@ export class GatewayController {
   }
 
   @All('*')
-  @UseGuards(FirebaseAuthGuard)
+  @UseGuards(MultiAuthGuard)
   async default(@Req() req: Request, @Res() res: Response) {
     logger.log('Attempting to reroute request');
     await this.proxy.reRoute(req, res, undefined);
