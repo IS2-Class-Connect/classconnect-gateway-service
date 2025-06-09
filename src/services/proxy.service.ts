@@ -38,7 +38,9 @@ export class ProxyService {
       if (onError) {
         await onError(error);
       }
-      res.status(error.response.status)
+      const status = error.response.status;
+      logger.warn(`An error occurred with status ${status}`);
+      res.status(status)
         .set(error.response.headers)
         .send(error.response.data);
     }
