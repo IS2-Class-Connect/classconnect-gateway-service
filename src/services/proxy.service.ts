@@ -60,7 +60,9 @@ export class ProxyService {
     */
   private async tryReRoute(req: Request): Promise<AxiosResponse> {
     const parts = req.path.split('/');
-    if (parts.length < 2) {
+    const service = parts[1];
+
+    if (service.length === 0) {
       throw {
         response: {
           status: HttpStatus.BAD_REQUEST,
@@ -70,7 +72,6 @@ export class ProxyService {
       }
     }
 
-    const service = parts[1];
     const serviceBaseUrl = this.serviceMap[service];
     if (!serviceBaseUrl) {
       throw {
