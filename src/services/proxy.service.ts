@@ -38,11 +38,18 @@ export class ProxyService {
       if (onError) {
         await onError(error);
       }
-      const status = error.response.status;
-      logger.warn(`An error occurred with status ${status}`);
-      res.status(status)
-        .set(error.response.headers)
-        .send(error.response.data);
+
+      if (error.response) {
+        const status = error.response.status;
+        logger.warn(`An error occurred with status ${status}`);
+        res.status(status)
+          .set(error.response.headers)
+          .send(error.response.data);
+      } else {
+        logger.warn(`An error occurred, status is unknown, defaulting to 500`)
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .send({ message: 'An unexpected error occurred', error: error.message });
+      }
     }
   }
 
