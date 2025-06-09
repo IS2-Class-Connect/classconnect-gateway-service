@@ -6,7 +6,7 @@ import {
 import { HttpService } from '@nestjs/axios';
 import { Request, Response } from 'express';
 import { firstValueFrom } from 'rxjs';
-import { AxiosError, AxiosResponse } from 'axios';
+import { AxiosResponse } from 'axios';
 
 @Injectable()
 export class ProxyService {
@@ -56,7 +56,7 @@ export class ProxyService {
     *
     * @returns The response of the request.
     *
-    * @throws {AxiosError} - If the service is invalid, not provided or the actual request fails.
+    * @throws {Object} - If the service is invalid, not provided or the actual request fails.
     */
   private async tryReRoute(req: Request): Promise<AxiosResponse> {
     const parts = req.path.split('/');
