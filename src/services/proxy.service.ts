@@ -38,10 +38,7 @@ export class ProxyService {
       if (onError) {
         await onError(error);
       }
-      const message = error?.response?.data?.error || error?.response?.data?.message || error?.message || error?.error || 'Unknown error';
-      const status = error?.response?.status || error?.status || HttpStatus.INTERNAL_SERVER_ERROR;
-      logger.error(`Error during reroute: ${message}`);
-      throw new HttpException(message, status);
+      throw error
     }
   }
 
