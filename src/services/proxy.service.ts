@@ -38,7 +38,9 @@ export class ProxyService {
       if (onError) {
         await onError(error);
       }
-      throw error
+      res.status(error.response.status)
+        .set(error.response.headers)
+        .send(error.response.data);
     }
   }
 
