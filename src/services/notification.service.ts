@@ -72,7 +72,7 @@ export class NotificationService {
     */
   async sendEnrollmentEmail(user: any, toName: string, courseName: string, studentEmail: string, topic: string) {
     this.validateUserConfig(user, topic);
-    return await this.mail.sendEnrollmentEmail(toName, courseName, studentEmail);
+    await this.mail.sendEnrollmentEmail(toName, courseName, studentEmail);
   }
 
   /**
@@ -85,9 +85,22 @@ export class NotificationService {
     * @param studentEmail  - The email of the user.
     * @param topic         - The kind of notification they will receive.
     */
-    async sendAssistantAssignmentEmail(user: any, toName: string, professorName: string, courseName: string, studentEmail: string, topic: string) {
+  async sendAssistantAssignmentEmail(user: any, toName: string, professorName: string, courseName: string, studentEmail: string, topic: string) {
     this.validateUserConfig(user, topic);
-    return await this.mail.sendAssistantAssignmentEmail(toName, professorName, courseName, studentEmail);
+    await this.mail.sendAssistantAssignmentEmail(toName, professorName, courseName, studentEmail);
+  }
+
+  /**
+    * Sends rule modification emails to users.
+    *
+    * @param users - A list of users to send the emails.
+    * @param rules - A list of the new rules the admins have selected.
+    */
+  async sendNewRulesEmails(users: any[], rules: any[]) {
+    for (let i = 0; i < users.length; i++) {
+      const uuid = users[i].uuid
+      await this.mail.sendNewRulesEmail(uuid, rules);
+    }
   }
 }
 

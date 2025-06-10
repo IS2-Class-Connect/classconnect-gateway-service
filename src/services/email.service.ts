@@ -67,6 +67,27 @@ export class EmailService {
       throw new HttpException(`Error sending assistant assignment email: ${err}`, 500)
     }
   }
+
+  async sendNewRulesEmail(
+    toName: string,
+    toEmail: string,
+    rules: any[],
+  ) {
+    const body = "";
+    const templateParams = {
+      to_name: toName,
+      to_email: toEmail,
+      body: body,
+    }
+
+    try {
+      const result = await emailjs.send(SERVICE_ID, TEMPLATE_ASSISTANT_ID, templateParams, KEYS);
+      logger.log('✅ New rules email sent:', result.status);
+    } catch (err) {
+      logger.error('❌ Error sending new rules email:', err);
+      throw new HttpException(`Error sending new rules email: ${err}`, 500);
+    }
+  }
 }
 
 const logger = new Logger(EmailService.name);

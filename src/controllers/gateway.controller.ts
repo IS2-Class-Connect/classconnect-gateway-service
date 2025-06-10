@@ -49,13 +49,31 @@ export class GatewayController {
     try {
       res = await firstValueFrom(this.http.get(url));
     } catch (e) {
-      logger.warn(`Coudn't reach users service: ${e}`)
-
+      logger.warn(`Couldn't reach users service: ${e}`);
       throw new HttpException(e.repsonse, e.status);
     }
 
     if (res.data?.error) {
       throw new HttpException(`Failed to fetch user: ${res.data.error}`, 500);
+    }
+
+    return res.data;
+  }
+
+  async fetchUsers(): Promise<Object> {
+    logger.log(`Fetching users`);
+    const url = `${this.serviceMap['users']}/users`;
+
+    let res: AxiosResponse;
+    try {
+      res = await firstValueFrom(this.http.get(url));
+    } catch (e) {
+      logger.warn(`Couldn't reach users service: ${e}`);
+      throw new HttpException(e.reponse, e.status);
+    }
+
+    if (res.data?.error) {
+      throw new HttpException(`Failed to fecth users: ${res.data.error}`, 500);
     }
 
     return res.data;
@@ -102,6 +120,16 @@ export class GatewayController {
     logger.log('Attempting to send assistant assignment email');
     const user = await this.fetchUser(uid);
     await this.notification.sendAssistantAssignmentEmail(user, toName, professorName, courseName, studentEmail, topic);
+  }
+
+  @Post('/email/rules')
+  @UseGuards(GatewayTokenGuard)
+  async sendRulesEmail(
+    @Body('rules') rules: any[],
+  ) {
+    logger.log('Attempting to send rules email');
+    const users = await this.fetchUsers();
+    await this.notification.sendNewRulesEmails(users, rules);
   }
 
   @All('/admins') // backoffice implements it's own auth
