@@ -1,8 +1,6 @@
-
 import {
   HttpStatus,
   Logger,
-  HttpException,
   Injectable,
 } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
@@ -27,8 +25,6 @@ export class ProxyService {
     * @param req     - The request to be rerouted.
     * @param res     - The response object to return the request's result.
     * @param onError - An error handler, it's called right after rerouting throws.
-    *
-    * @throws {HttpException} if there's an error in the communication.
     */
   async reRoute(req: Request, res: Response, onError?: (error: Error) => any): Promise<void> {
     try {
@@ -38,10 +34,18 @@ export class ProxyService {
       if (onError) {
         await onError(error);
       }
-      const message = error?.response?.data?.error || error?.response?.data?.message || error?.message || error?.error || 'Unknown error';
-      const status = error?.response?.status || error?.status || HttpStatus.INTERNAL_SERVER_ERROR;
-      logger.error(`Error during reroute: ${message}`);
-      throw new HttpException(message, status);
+
+      if (error.response) {
+        const status = error.response.status;
+        logger.warn(`An error occurred with status ${status}`);
+        res.status(status)
+          .set(error.response.headers)
+          .send(error.response.data);
+      } else {
+        logger.warn(`An error occurred, status is unknown, defaulting to 500`)
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .send({ message: 'An unexpected error occurred', error: error.message });
+      }
     }
   }
 
@@ -52,18 +56,31 @@ export class ProxyService {
     *
     * @returns The response of the request.
     *
-    * @throws {HttpException} - If the service is invalid, not provided or the actual request fails.
+    * @throws {Object} - If the service is invalid, not provided or the actual request fails.
     */
   private async tryReRoute(req: Request): Promise<AxiosResponse> {
     const parts = req.path.split('/');
-    if (parts.length < 2) {
-      throw new HttpException('No service was provided', HttpStatus.BAD_REQUEST);
+    const service = parts[1];
+
+    if (service.length === 0) {
+      throw {
+        response: {
+          status: HttpStatus.BAD_REQUEST,
+          data: { message: "No service was provided" },
+          headers: {}
+        }
+      }
     }
 
-    const service = parts[1];
     const serviceBaseUrl = this.serviceMap[service];
     if (!serviceBaseUrl) {
-      throw new HttpException(`Unknown service: ${service}`, HttpStatus.BAD_REQUEST);
+      throw {
+        response: {
+          status: HttpStatus.BAD_REQUEST,
+          data: { message: `Unknown service: ${service}` },
+          headers: {}
+        }
+      }
     }
 
     const targetUrl = `${serviceBaseUrl}${req.path}`;

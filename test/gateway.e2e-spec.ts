@@ -104,6 +104,27 @@ describe('ProxyController (e2e)', () => {
     expect(res.body.message).toMatch(/Unknown service/);
   });
 
+  it('GET / should return 400', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/')
+      .set('Authorization', 'Bearer mock-token')
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/No service was provided/);
+  });
+
+  it('GET /users when the users service is down should return 500', async () => {
+    userServer.close()
+
+    const res = await request(app.getHttpServer())
+      .get('/users')
+      .set('Authorization', 'Bearer mock-token')
+
+    expect(res.status).toBe(500);
+
+    userServer = startMockUserService(3001)
+  });
+
   it('should return 401 for an invalid Firebase token', async () => {
     const res = await request(app.getHttpServer())
       .get('/users/ping')
