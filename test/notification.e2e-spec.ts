@@ -10,6 +10,8 @@ describe('NotificationService', () => {
 
   const mockUser = {
     uuid: 'user-123',
+    name: 'Bob',
+    email: 'bob@example.com',
     pushToken: 'ExponentPushToken[abc123]',
     pushTaskAssignment: true,
     pushMessageReceived: true,
@@ -26,6 +28,7 @@ describe('NotificationService', () => {
     emailService = {
       sendEnrollmentEmail: jest.fn(),
       sendAssistantAssignmentEmail: jest.fn(),
+      sendNewRulesEmail: jest.fn(),
     } as any;
 
     service = new NotificationService(pushService, emailService);
@@ -101,6 +104,25 @@ describe('NotificationService', () => {
       await expect(
         service.sendAssistantAssignmentEmail(user, 'Bob', 'Prof. John', 'History 101', 'bob@example.com', 'assistant-assignment'),
       ).rejects.toThrow(HttpException);
+    });
+  });
+
+
+  describe('sendNewRulesEmail', () => {
+    it('should send email', async () => {
+      const users = [mockUser];
+      const rules = [{
+        title: "title",
+        description: "description",
+        effective_date: "2025-05-05",
+        applicable_conditions: ["cond1", "cond2"]
+      }];
+      await service.sendNewRulesEmails(users, rules);
+      expect(emailService.sendNewRulesEmail).toHaveBeenCalledWith(
+        mockUser.name,
+        mockUser.email,
+        rules,
+      );
     });
   });
 });
