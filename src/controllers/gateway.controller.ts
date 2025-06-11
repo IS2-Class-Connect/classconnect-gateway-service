@@ -60,7 +60,7 @@ export class GatewayController {
     return res.data;
   }
 
-  async fetchUsers(): Promise<Object> {
+  async fetchUsers(): Promise<any> {
     logger.log(`Fetching users`);
     const url = `${this.serviceMap['users']}/users`;
 

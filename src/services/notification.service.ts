@@ -98,8 +98,9 @@ export class NotificationService {
     */
   async sendNewRulesEmails(users: any[], rules: any[]) {
     for (let i = 0; i < users.length; i++) {
-      const uuid = users[i].uuid
-      await this.mail.sendNewRulesEmail(uuid, rules);
+      const name = users[i].name;
+      const email = users[i].email;
+      await this.mail.sendNewRulesEmail(name, email, rules);
     }
   }
 }
