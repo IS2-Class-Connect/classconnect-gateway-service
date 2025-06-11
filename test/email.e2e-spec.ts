@@ -48,7 +48,7 @@ describe('EmailService', () => {
       (emailjs.send as jest.Mock).mockRejectedValue(new Error('Failed'));
 
       await expect(
-        service.sendNewRulesEmail('Alice', 'Math 101', rules)
+        service.sendNewRulesEmail('Alice', 'alice@example.com', rules)
       ).rejects.toThrow(HttpException);
     });
   });

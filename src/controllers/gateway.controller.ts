@@ -69,11 +69,11 @@ export class GatewayController {
       res = await firstValueFrom(this.http.get(url));
     } catch (e) {
       logger.warn(`Couldn't reach users service: ${e}`);
-      throw new HttpException(e.reponse, e.status);
+      throw new HttpException(e.response, e.status);
     }
 
     if (res.data?.error) {
-      throw new HttpException(`Failed to fecth users: ${res.data.error}`, 500);
+      throw new HttpException(`Failed to fetch users: ${res.data.error}`, 500);
     }
 
     return res.data;
