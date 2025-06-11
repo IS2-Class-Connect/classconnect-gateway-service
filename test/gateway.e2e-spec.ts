@@ -213,7 +213,7 @@ describe('ProxyController (e2e)', () => {
         topic: 'general',
       });
 
-    expect(response.status).toBe(201); // or the default if you didn't set a status
+    expect(response.status).toBe(201);
     expect(notificationService.notifyUser).toHaveBeenCalledWith(
       expect.objectContaining({
         uid: 'test-uid',

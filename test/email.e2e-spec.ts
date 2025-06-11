@@ -14,6 +14,45 @@ describe('EmailService', () => {
     jest.clearAllMocks(); // clear mocks between tests
   });
 
+  describe('sendNewRulesEmail', () => {
+    const rules = [{
+      title: 'title',
+      description: 'description',
+      effective_date: '2025-05-05',
+      applicable_conditions: ["condition 1", "condition 2"]
+    }];
+
+    it('should call emailjs.send with correct parameters', async () => {
+      const mockResponse = { status: 200 };
+      (emailjs.send as jest.Mock).mockResolvedValue(mockResponse);
+
+      await service.sendNewRulesEmail('Thomas', 'thomas@example.com', rules)
+
+      expect(emailjs.send).toHaveBeenCalledWith(
+        SERVICE_ID,
+        TEMPLATE_EMAIL_ID,
+        {
+          toName: 'Thomas',
+          toEmail: 'thomas@example.com',
+          subject: 'New Rules and Policies',
+          body: service.newRulesTemplate(rules)
+        },
+        expect.objectContaining({
+          privateKey: process.env.EMAIL_PRIVATE_KEY,
+          publicKey: PUBLIC_KEY,
+        })
+      );
+    });
+
+    it('should throw HttpException if emailjs.send fails', async () => {
+      (emailjs.send as jest.Mock).mockRejectedValue(new Error('Failed'));
+
+      await expect(
+        service.sendNewRulesEmail('Alice', 'Math 101', rules)
+      ).rejects.toThrow(HttpException);
+    });
+  });
+
   describe('sendEnrollmentEmail', () => {
     it('should call emailjs.send with correct parameters', async () => {
       const mockResponse = { status: 200 };
