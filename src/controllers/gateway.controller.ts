@@ -50,7 +50,7 @@ export class GatewayController {
       res = await firstValueFrom(this.http.get(url));
     } catch (e) {
       logger.warn(`Couldn't reach users service: ${e}`);
-      throw new HttpException(e.repsonse, e.status);
+      throw new HttpException(e.response, e.status);
     }
 
     if (res.data?.error) {
@@ -174,7 +174,7 @@ export class GatewayController {
 
   @Get('/users/me')
   @UseGuards(MultiAuthGuard)
-  async usersGet(@Req() req: Request, @Res() res: Response) {
+  async userGet(@Req() req: Request, @Res() res: Response) {
     logger.log('Attempting to get a user');
     this.replaceMe(req);
     await this.proxy.reRoute(req, res, undefined);
@@ -182,7 +182,7 @@ export class GatewayController {
 
   @Patch('/users/me')
   @UseGuards(MultiAuthGuard)
-  async usersPatch(@Req() req: Request, @Res() res: Response) {
+  async userPatch(@Req() req: Request, @Res() res: Response) {
     logger.log('Attempting to patch a user');
 
     const uid = this.replaceMe(req);

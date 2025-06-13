@@ -30,7 +30,6 @@ export class PushService {
       if (failed) {
         throw new Error('receipt returned an error');
       }
-
     } catch (error) {
       logger.warn(`Expo push notification failed: ${error}`);
       throw new HttpException('Expo failed to deliver the push notification', HttpStatus.INTERNAL_SERVER_ERROR);
