@@ -22,7 +22,7 @@ import { ProxyService } from '../services/proxy.service';
 import { NotificationService } from '../services/notification.service';
 import * as admin from 'firebase-admin';
 import { firstValueFrom } from 'rxjs';
-import { AxiosResponse } from 'axios';
+import { AxiosError, AxiosResponse } from 'axios';
 
 @Controller('')
 export class GatewayController {
@@ -40,7 +40,15 @@ export class GatewayController {
     @Inject('FIREBASE_ADMIN') private readonly firebaseAdmin: typeof admin,
   ) { }
 
-
+  /**
+    * Fetches a user from the users service.
+    *
+    * @param uid - The user id to lookup.
+    *
+    * @throws {HttpException} - If the user was not found or the request failed.
+    *
+    * @return The user if found.
+    */
   async fetchUser(uid: string): Promise<any> {
     logger.log(`Fetching user ${uid} from users`);
     const url = `${this.serviceMap['users']}/users/${uid}`;
@@ -50,7 +58,7 @@ export class GatewayController {
       res = await firstValueFrom(this.http.get(url));
     } catch (e) {
       logger.warn(`Couldn't reach users service: ${e}`);
-      throw new HttpException(e.repsonse, e.status);
+      throw new HttpException(e.response.data, e.response.status);
     }
 
     if (res.data?.error) {
@@ -60,7 +68,14 @@ export class GatewayController {
     return res.data;
   }
 
-  async fetchUsers(): Promise<any> {
+  /**
+    * Fetches a user from the users service.
+    *
+    * @throws {HttpException} - If the users service couldn't be reached.
+    *
+    * @return A list of users.
+    */
+  async fetchUsers(): Promise<any[]> {
     logger.log(`Fetching users`);
     const url = `${this.serviceMap['users']}/users`;
 
@@ -69,7 +84,7 @@ export class GatewayController {
       res = await firstValueFrom(this.http.get(url));
     } catch (e) {
       logger.warn(`Couldn't reach users service: ${e}`);
-      throw new HttpException(e.response, e.status);
+      throw new HttpException(e.response.data, e.response.status);
     }
 
     if (res.data?.error) {
@@ -79,6 +94,11 @@ export class GatewayController {
     return res.data;
   }
 
+  /**
+    * Sends a push notification to a given user.
+    *
+    * @throws {HttpException} - If the notification couldn't be sent.
+    */
   @Post('/notifications')
   @UseGuards(GatewayTokenGuard)
   async notifyUser(
@@ -92,6 +112,11 @@ export class GatewayController {
     await this.notification.notifyUser(user, title, body, topic);
   }
 
+  /**
+    * Sends an email to a given user regarding an enrollment to a certain course.
+    *
+    * @throws {HttpException} - If the email couldn't be sent.
+    */
   @Post('/email/student-enrollment')
   @UseGuards(GatewayTokenGuard)
   async sendEnrollmentEmail(
@@ -106,7 +131,11 @@ export class GatewayController {
     await this.notification.sendEnrollmentEmail(user, toName, courseName, studentEmail, topic);
   }
 
-
+  /**
+    * Sends an email to a given user regarding an assistant assignment to a certain course.
+    *
+    * @throws {HttpException} - If the email couldn't be sent.
+    */
   @Post('/email/assistant-assignment')
   @UseGuards(GatewayTokenGuard)
   async sendAssistantAssignmentEmail(
@@ -122,6 +151,11 @@ export class GatewayController {
     await this.notification.sendAssistantAssignmentEmail(user, toName, professorName, courseName, studentEmail, topic);
   }
 
+  /**
+    * Sends an email to all users regarding the new rules and policies of the application.
+    *
+    * @throws {HttpException} - If the email couldn't be sent.
+    */
   @Post('/email/rules')
   @UseGuards(GatewayTokenGuard)
   async sendRulesEmail(
@@ -132,36 +166,66 @@ export class GatewayController {
     await this.notification.sendNewRulesEmails(users, rules);
   }
 
-  @All('/admins') // backoffice implements it's own auth
+  /**
+    * Redirects requests directly with the path prefix of /admins given that the backoffice implements it's own auth.
+    *
+    * @throws {HttpException} - If there was an error redirecting the request.
+    */
+  @All('/admins')
   async admins(@Req() req: Request, @Res() res: Response) {
     logger.log('Attempting to reroute request to admins');
     await this.proxy.reRoute(req, res, undefined);
   }
 
-  @All('/admins/*') // backoffice implements it's own auth
+  /**
+    * Redirects requests directly with the path prefix of /admins/* given that the backoffice implements it's own auth.
+    *
+    * @throws {HttpException} - If there was an error redirecting the request.
+    */
+  @All('/admins/*')
   async adminsPlus(@Req() req: Request, @Res() res: Response) {
     logger.log('Attempting to reroute request to admins');
     await this.proxy.reRoute(req, res, undefined);
   }
 
-  @Get('/users/*/check-lock-status') // unprotected
+  /**
+    * Bypasses the auth check for this particular endpoint, leaving it unprotected.
+    *
+    * @throws {HttpException} - If there was an error redirecting the request.
+    */
+  @Get('/users/*/check-lock-status')
   async usersCheckLockStatus(@Req() req: Request, @Res() res: Response) {
     logger.log('Attempting to check-lock-status');
     await this.proxy.reRoute(req, res, undefined);
   }
 
-  @Patch('/users/*/failed-attempts') // unprotected
+  /**
+    * Bypasses the auth check for this particular endpoint, leaving it unprotected.
+    *
+    * @throws {HttpException} - If there was an error redirecting the request.
+    */
+  @Patch('/users/*/failed-attempts')
   async usersFailedAttempts(@Req() req: Request, @Res() res: Response) {
     logger.log('Attempting to modify failed-attempts');
     await this.proxy.reRoute(req, res, undefined);
   }
 
-  @Post('/users') // unprotected
-  async usersCreate(@Req() req: Request, @Res() res: Response) {
+  /**
+    * Bypasses the auth check for this particular endpoint, leaving it unprotected.
+    *
+    * @throws {HttpException} - If there was an error redirecting the request.
+    */
+  @Post('/users')
+  async userCreate(@Req() req: Request, @Res() res: Response) {
     logger.log('Attempting to post a new user');
     await this.proxy.reRoute(req, res, undefined);
   }
 
+  /**
+    * Replaces the uid in the request path with the actual uid.
+    *
+    * @throws {HttpException} - If the suffix couldn't be replaced.
+    */
   replaceMe(req: Request): string {
     const firebaseUser = req['user'];
     const uid = firebaseUser?.uid;
@@ -172,17 +236,31 @@ export class GatewayController {
     return uid;
   }
 
+  /**
+    * Replaces the /me suffix with the actual uid using firebase, it then
+    * redirects the request to the users service and returns it's reponse.
+    *
+    * @throws {HttpException} - If the suffix couldn't be replaced.
+    * @throws {HttpException} - If there was an error redirecting the request.
+    */
   @Get('/users/me')
   @UseGuards(MultiAuthGuard)
-  async usersGet(@Req() req: Request, @Res() res: Response) {
+  async userGet(@Req() req: Request, @Res() res: Response) {
     logger.log('Attempting to get a user');
     this.replaceMe(req);
     await this.proxy.reRoute(req, res, undefined);
   }
 
+  /**
+    * Replaces the /me suffix with the actual uid using firebase, it then
+    * redirects the request to the users service and returns it's reponse.
+    *
+    * @throws {HttpException} - If the suffix couldn't be replaced.
+    * @throws {HttpException} - If there was an error redirecting the request.
+    */
   @Patch('/users/me')
   @UseGuards(MultiAuthGuard)
-  async usersPatch(@Req() req: Request, @Res() res: Response) {
+  async userPatch(@Req() req: Request, @Res() res: Response) {
     logger.log('Attempting to patch a user');
 
     const uid = this.replaceMe(req);
@@ -218,6 +296,13 @@ export class GatewayController {
     });
   }
 
+  /**
+    * Redirects requests directly with the path prefix of /admin-backend/* using the {GatewayTokenGuard}.
+    * So that the backoffice can make requests to other services through the gateway without being logged in
+    * in Firebase.
+    *
+    * @throws {HttpException} - If there was an error redirecting the request.
+    */
   @All('/admin-backend/*')
   @UseGuards(GatewayTokenGuard)
   async adminBackendProxy(@Req() req: Request, @Res() res: Response) {
@@ -227,6 +312,12 @@ export class GatewayController {
     await this.proxy.reRoute(req, res, undefined);
   }
 
+  /**
+    * Updates the user's lock status, this needs to make sure that changing it also changes it in Firebase too.
+    * If an error occurs, then it will try to revert the change made previously.
+    *
+    * @throws {HttpException} - If there was an error redirecting the request.
+    */
   @Patch('/admin-backend/users/:uid/lock-status')
   @UseGuards(GatewayTokenGuard)
   async updateUserLockStatus(
@@ -251,6 +342,11 @@ export class GatewayController {
     }
   }
 
+  /**
+    * General proxy default gateway for requests that don't match previous handler definitions.
+    *
+    * @throws {HttpException} - If there was an error redirecting the request.
+    */
   @All('*')
   @UseGuards(MultiAuthGuard)
   async default(@Req() req: Request, @Res() res: Response) {

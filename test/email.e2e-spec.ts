@@ -1,4 +1,4 @@
-import { EmailService, TEMPLATE_EMAIL_ID, PUBLIC_KEY, SERVICE_ID, KEYS } from '../src/services/email.service';
+import { EmailService, TEMPLATE_EMAIL_ID, PUBLIC_KEY, SERVICE_ID } from '../src/services/email.service';
 import { HttpException } from '@nestjs/common';
 import emailjs from '@emailjs/nodejs';
 

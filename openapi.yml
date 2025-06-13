@@ -1,0 +1,260 @@
+openapi: 3.1.3
+info:
+  title: ClassConnect Gateway Service API
+  version: 1.0.0
+  description: |
+    The Gateway reroutes requests to the appropriate microservice (users, education, backoffice).
+    For example, `GET /users/<uuid>` will call the users-service with `GET /users/<uuid>` and return its response.
+
+paths:
+  /notifications:
+    post:
+      summary: Sends a push notification to the given user.
+      operationId: notifyUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PushNotification'
+      responses:
+        '200':
+          description: Send the push notification successfully.
+        '404':
+          description: Didn't find user in users service.
+        '500':
+          description: Failed to reach users service or Expo failed to send push notification.
+
+  /email/student-enrollment:
+    post:
+      summary: Sends an email to a given user regarding an enrollment to a certain course.
+      operationId: sendEnrollmentEmail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnrollmentEmail'
+      responses:
+        '200':
+          description: Send the email successfully.
+        '404':
+          description: Didn't find user in users service.
+        '500':
+          description: Failed to reach users service or failed to send email.
+         
+  /email/assistant-assignment:
+    post:
+      summary: Sends an email to a given user regarding an assistant assignment to a certain course.
+      operationId: sendAssistantAssignmentEmail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssistantAssignmentEmail'
+      responses:
+        '200':
+          description: Send the email successfully.
+        '404':
+          description: Didn't find user in users service.
+        '500':
+          description: Failed to reach users service or failed to send email.
+
+  /email/rules:
+    post:
+      summary: Sends an email to all users regarding the new rules and policies of the application.
+      operationId: sendRulesEmail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RulesEmail'
+      responses:
+        '200':
+          description: Send the email successfully.
+        '404':
+          description: Didn't find user in users service.
+        '500':
+          description: Failed to reach users service or failed to send email.
+
+  /users/me:
+    get:
+      summary: Gets a certain user without a given id.
+      operationId: userGet
+      responses:
+        '400':
+          description: Failed to fetch the user's information in Firebase.
+        '500':
+          description: Failed to reach users service.
+        any:
+          description: Users service's response.
+
+    patch:
+      summary: Patches a certain user without a given id.
+      operationId: userPatch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            description: Defined in users service.
+      responses:
+        '400':
+          description: Failed to fetch the user's information in Firebase.
+        any:
+          description: Users service's response.
+        
+  /admin-backend/{proxy+}:
+    any:
+      summary: An dedicated endpoint for the admin backend that needs to pass through user guards of token validation.
+      operationId: adminBackendProxy
+      requestBody:
+        required: false
+        content:
+          application/json:
+            description: Depends on the type of endpoint it is hitting.
+      responses:
+        any:
+          description: Requested service's response.
+
+  /admin-backend/users/{uid}/lock-status:
+    patch:
+      summary: Will block the user in the application through Firebase, so that their requests are invalidated by the auth.
+      operationId: updateUserLockStatus
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLockStatus'
+
+  /{proxy+}:
+    any:
+      summary: Catch-all proxy route
+      description: |
+        Any other route will be proxied to the appropriate microservice based on the path prefix.
+      responses:
+        '500':
+          description: Failed to reach microservice or there was an internal error in the requested microservice.
+        any:
+          description: The response status of the requested microservice.
+
+components:
+  schemas:
+    PushNotification:
+      type: object
+      required:
+        - uuid
+        - title
+        - body
+        - topic
+      properties:
+        uuid:
+          type: string
+          example: 681293f60d3eebd21ae7dad4
+        title:
+          type: string
+          example: Enrollment succesfull!
+        body:
+          type: string
+          example: You've been successfully enrolled to the course Algorithms Design
+        topic:
+          type: string
+          example: enrollment
+
+    EnrollmentEmail:
+      type: object
+      required:
+        - uuid
+        - toName
+        - courseName
+        - studentEmail
+        - topic
+      properties:
+        uuid:
+          type: string
+          example: 681293f60d3eebd21ae7dad4
+        toName:
+          type: string
+          example: John
+        courseName:
+          type: string
+          example: Algorithms Design
+        studentEmail:
+          type: string
+          example: john@gmail.com
+        topic:
+          type: string
+          example: enrollment
+
+    AssistantAssignmentEmail:
+      type: object
+      required:
+        - uuid
+        - toName
+        - professorName
+        - courseName
+        - studentEmail
+        - topic
+      properties:
+        uuid:
+          type: string
+          example: 681293f60d3eebd21ae7dad4
+        toName:
+          type: string
+          example: John
+        professorName:
+          type: string
+          example: Johnathan
+        courseName:
+          type: string
+          example: Algorithms Design
+        studentEmail:
+          type: string
+          example: johnathan@gmail.com
+        topic:
+          type: string
+          example: assistant-assignment
+
+    RulesEmail:
+      type: object
+      required:
+        - rules
+      properties:
+        rules:
+          type: array
+          items:
+            type: object
+            properties:
+              title:
+                type: string
+              description:
+                type: string
+              effective_date:
+                type: string
+              applicable_conditions:
+                type: array
+                items:
+                  type: string
+
+    UserLockStatus:
+      type: object
+      required:
+        - uid
+        - locked
+      properties:
+        uid:
+          type: string
+          example: 681293f60d3eebd21ae7dad4      
+        locked:
+          type: boolean
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - bearerAuth: []
