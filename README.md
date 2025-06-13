@@ -22,7 +22,7 @@ The gateway will reroute the client to the specified service. For example `GET /
 
 Here are some curl examples for gateway specific endpoints.
 
-To send a push notifiation use `POST /notifications`
+To send a push notification use `POST /notifications`
 ```sh
 curl -X 'POST' 'http://localhost:3000/notifications' \
   -H 'Authorization: Bearer {token}' \
