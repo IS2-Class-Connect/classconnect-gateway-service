@@ -13,6 +13,7 @@ export function validateEnv() {
     'EDUCATION_URL',
     'GATEWAY_TOKEN',
     'EMAIL_PRIVATE_KEY',
+    'CLIENT_ID',
   ];
 
   const missing = requiredVars.filter((key) => !process.env[key]);

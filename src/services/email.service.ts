@@ -14,6 +14,7 @@ export class EmailService {
    * Generates the HTML content for the enrollment confirmation email.
    *
    * @param courseName - The name of the course the user is enrolled in.
+   *
    * @returns The HTML string content of the email.
    */
   enrollmentTemplate(courseName: string): string {
@@ -30,6 +31,7 @@ export class EmailService {
    *
    * @param courseName - The name of the course for which the assignment is made.
    * @param professorName - The name of the professor assigning the assistant.
+   *
    * @returns The HTML string content of the email.
    */
   assistantAssignmentTemplate(courseName: string, professorName: string): string {
