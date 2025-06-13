@@ -7,7 +7,6 @@ export function validateEnv() {
     'FIREBASE_PROJECT_ID',
     'FIREBASE_CLIENT_EMAIL',
     'FIREBASE_PRIVATE_KEY',
-    'DATABASE_URL',
     'JWT_SECRET',
     'USERS_URL',
     'EDUCATION_URL',
