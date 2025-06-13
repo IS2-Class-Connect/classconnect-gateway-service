@@ -200,7 +200,7 @@ describe('ProxyController (e2e)', () => {
     expect(res.body).toEqual({ message: 'Created admin' });
   });
 
-  it('should notify a user via POST /notifications', async () => {
+  it('POST /notifications should notify a user', async () => {
     const response = await request(app.getHttpServer())
       .post('/notifications')
       .set('Authorization', 'Bearer gateway-token')
@@ -223,7 +223,7 @@ describe('ProxyController (e2e)', () => {
     );
   });
 
-  it(`should return an error if the user doesn't exist for POST /notifications`, async () => {
+  it(`POST /notifications should return an error if the user doesn't exist`, async () => {
     const response = await request(app.getHttpServer())
       .post('/notifications')
       .set('Authorization', 'Bearer gateway-token')
@@ -235,6 +235,15 @@ describe('ProxyController (e2e)', () => {
       });
 
     expect(response.status).toBe(404);
+  })
+
+  it(`POST /email/rules should return an error if users service fails to deliver the users`, async () => {
+    const response = await request(app.getHttpServer())
+      .post('/email/rules')
+      .set('Authorization', 'Bearer gateway-token')
+      .send({ rules: [] });
+
+    expect(response.status).toBe(500);
   })
 
   it('GET /admin-backend/users/ping should ping the users service', async () => {

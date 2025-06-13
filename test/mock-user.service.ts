@@ -55,6 +55,10 @@ export function startMockUserService(port: number) {
     })
   })
 
+  app.get('/users', (_req, res) => {
+    res.status(500).send();
+  })
+
   return app.listen(port);
 }
 
