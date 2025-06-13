@@ -56,8 +56,8 @@ export class MultiAuthGuard implements CanActivate {
         idToken: token,
         audience: GOOGLE_CLIENT_ID,
       });
-
       const payload = ticket.getPayload();
+
       if (!payload || !payload.sub) {
         throw new UnauthorizedException('Invalid Google token');
       }
