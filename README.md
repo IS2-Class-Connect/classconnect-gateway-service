@@ -12,7 +12,7 @@
 
 ## Description
 
-This respository has the implementation of the gateway server for the ClassConnect application. It redirects requests to the correct microservice and has some extra features such as push notification handling and email delivery. It uses **NestJS** and **TypeScript**.
+This repository has the implementation of the gateway server for the ClassConnect application. It redirects requests to the correct microservice and has some extra features such as push notification handling and email delivery. It uses **NestJS** and **TypeScript**.
 
 The gateway will reroute the client to the specified service. For example `GET /users/<uuid>` will call the users-service with `GET /users/<uuid>` and return it's response to the user.
 
@@ -49,7 +49,7 @@ curl -X 'POST' 'http://localhost:3000/email/student-enrollment' \
   }'
 ```
 
-To send an asssistant assignment mail use `POST /email/assistant-assignment`.
+To send an assistant assignment mail use `POST /email/assistant-assignment`.
 ```sh
 curl -X 'POST' 'http://localhost:3000/email/assistant-assignment' \
   -H 'Authorization: Bearer {token}' \
@@ -84,7 +84,7 @@ curl -X 'POST' 'http://localhost:3000/email/rules' \
   }'
 ```
 
-To talk to the gatewy through the backoffice use the path `/admin-backend/*`. For example this retrieves all the users.
+To talk to the gateway through the backoffice use the path `/admin-backend/*`. For example this retrieves all the users.
 ```sh
 curl 'http://localhost:3000/users' \
   -H 'Authorization: Bearer {token}'

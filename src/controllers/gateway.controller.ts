@@ -22,7 +22,7 @@ import { ProxyService } from '../services/proxy.service';
 import { NotificationService } from '../services/notification.service';
 import * as admin from 'firebase-admin';
 import { firstValueFrom } from 'rxjs';
-import { AxiosResponse } from 'axios';
+import { AxiosError, AxiosResponse } from 'axios';
 
 @Controller('')
 export class GatewayController {
@@ -58,7 +58,7 @@ export class GatewayController {
       res = await firstValueFrom(this.http.get(url));
     } catch (e) {
       logger.warn(`Couldn't reach users service: ${e}`);
-      throw new HttpException(e.response, e.status);
+      throw new HttpException(e.response.data, e.response.status);
     }
 
     if (res.data?.error) {
@@ -84,7 +84,7 @@ export class GatewayController {
       res = await firstValueFrom(this.http.get(url));
     } catch (e) {
       logger.warn(`Couldn't reach users service: ${e}`);
-      throw new HttpException(e.response, e.status);
+      throw new HttpException(e.response.data, e.response.status);
     }
 
     if (res.data?.error) {

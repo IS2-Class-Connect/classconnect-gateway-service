@@ -53,8 +53,6 @@ describe('ProxyController (e2e)', () => {
       .useValue(mockFirebaseAdmin)
       .compile();
 
-
-
     notificationService = moduleFixture.get<NotificationService>(NotificationService);
     jest.spyOn(notificationService, 'notifyUser').mockImplementation(async () => Promise.resolve());
     app = moduleFixture.createNestApplication();
@@ -235,7 +233,6 @@ describe('ProxyController (e2e)', () => {
         body: 'You have a new message.',
         topic: 'general',
       });
-
 
     expect(response.status).toBe(404);
   })
