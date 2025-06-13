@@ -11,6 +11,7 @@ export function validateEnv() {
     'JWT_SECRET',
     'USERS_URL',
     'EDUCATION_URL',
+    'ADMINS_URL',
     'GATEWAY_TOKEN',
     'EMAIL_PRIVATE_KEY',
     'CLIENT_ID',

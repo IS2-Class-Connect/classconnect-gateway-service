@@ -318,7 +318,7 @@ export class GatewayController {
     *
     * @throws {HttpException} - If there was an error redirecting the request.
     */
-  @Patch()
+  @Patch('/admin-backend/users/:uid/lock-status')
   @UseGuards(GatewayTokenGuard)
   async updateUserLockStatus(
     @Param('uid') uid: string,
