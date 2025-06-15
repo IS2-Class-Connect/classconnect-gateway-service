@@ -4,33 +4,113 @@
 - [Technologies](#technologies)
 - [Project Setup](#project-setup)
 - [Running the Project](#running-the-project)
-- [Database Configuration](#database-configuration)
-- [Using this Template](#using-this-template)
-- [⚠️ Branch Protection Recommendation](#️-branch-protection-recommendation)
 - [Testing](#testing)
 - [Project Structure](#project-structure)
-- [Support](#support)
 - [License](#license)
 - [Code Style](#code-style)
 - [Codecov](#Codecov)
 
 ## Description
 
-This repository is a template for creating microservices for the Class-Connect application. It uses **NestJS**, **Prisma**, and **TypeScript** with a **package-layered architecture**. The template is intentionally minimal and ready to be customized for each specific microservice.
+This repository has the implementation of the gateway server for the ClassConnect application. It redirects requests to the correct microservice and has some extra features such as push notification handling and email delivery. It uses **NestJS** and **TypeScript**.
 
-## Use
 The gateway will reroute the client to the specified service. For example `GET /users/<uuid>` will call the users-service with `GET /users/<uuid>` and return it's response to the user.
 
+## Use
+
 ## Endpoints
-- `/users`
-- `/courses`
-- `/evaluations`
-- `/admins`
+
+Here are some curl examples for gateway specific endpoints.
+
+To send a push notification use `POST /notifications`
+```sh
+curl -X 'POST' 'http://localhost:3000/notifications' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "uuid":  "user id",
+    "title": "notification title",
+    "body":  "body of notification",
+    "topic": "the topic of the notification"
+  }'
+```
+
+To send a student enrollment mail use `POST /email/student-enrollment`.
+```sh
+curl -X 'POST' 'http://localhost:3000/email/student-enrollment' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "uuid":         "user id",
+    "toName":       "recipient name",
+    "courseName":   "name of the enrolled course",
+    "studentEmail": "the email of the recipient",
+    "topic":        "enrollment"
+  }'
+```
+
+To send an assistant assignment mail use `POST /email/assistant-assignment`.
+```sh
+curl -X 'POST' 'http://localhost:3000/email/assistant-assignment' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "uuid":          "user id",
+    "toName":        "recipient name",
+    "professorName": "name of the professor in charge of the course",
+    "courseName":    "the name of the course",
+    "studentEmail":  "the email of the recipient",
+    "topic":         "assistant-assignment"
+  }'
+```
+
+To send a new rules and policies mail use `POST /email/rules`.
+```sh
+curl -X 'POST' 'http://localhost:3000/email/rules' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "rules": [
+      {
+        "title": "the title of the rule",
+        "description": "a description of this rule",
+        "effective_date": "the date which the rule becomes relevant",
+        "applicable_conditions": [
+          "cond1",
+          "cond2"
+        ]
+      }
+    ]
+  }'
+```
+
+To talk to the gateway through the backoffice use the path `/admin-backend/*`. For example this retrieves all the users.
+```sh
+curl 'http://localhost:3000/users' \
+  -H 'Authorization: Bearer {token}'
+```
+
+To get a user without passing it's id use `GET /users/me`.
+```sh
+curl 'http://localhost:3000/users/me' \
+  -H 'Authorization: Bearer {token}'
+```
+
+To patch a user without passing it's id use `PATCH /users/me`.
+```sh
+curl -X 'PATCH' 'http://localhost:3000/users/me' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "name": "new name",
+    "email": "new email",
+    "description": "new description"
+  }'
+```
 
 ## Technologies
 
 - **NestJS**: A progressive Node.js framework for building efficient and scalable server-side applications.
-- **Prisma**: A next-generation ORM for database management.
 - **TypeScript**: A strongly typed programming language that builds on JavaScript.
 - **Package-Layered Architecture**: A modular architecture pattern for better scalability and maintainability.
 
@@ -42,15 +122,14 @@ Ensure you have the following installed:
 
 - **Node.js** (v16 or higher)
 - **npm** (v8 or higher)
-- **PostgreSQL** (default database, can be switched to MongoDB if needed)
 
 ### Installation
 
 Clone the repository and install dependencies:
 
 ```bash
-$ git clone <repository-url>
-$ cd classconnect-base-service
+$ git clone <repository-url> gateway
+$ cd gateway
 $ npm install
 ```
 
@@ -74,42 +153,6 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
-## Database Configuration
-
-By default, this template is configured to use **PostgreSQL**. You can modify the database configuration in the `prisma/schema.prisma` file to switch to **MongoDB** or another database if required.
-
-To migrate the database schema:
-
-```bash
-$ npx prisma migrate dev
-```
-
-To generate Prisma client:
-
-```bash
-$ npx prisma generate
-```
-
-## Using this Template
-
-You can create a new repository from this template by clicking the **"Use this template"** button on GitHub. After cloning, make sure to:
-
-- Run `npm install` to install dependencies.
-- Update the `.env.example` file and create your own `.env`.
-- Initialize your own Prisma schema.
-- Configure GitHub Actions if needed.
-
-## ⚠️ Branch Protection Recommendation
-
-After creating a new repository from this template, we recommend you:
-
-1. Go to `Settings > Branches` in your GitHub repository.
-2. Add a protection rule for the `main` branch:
-   - ✅ Require status checks to pass before merging.
-   - ✅ Require branches to be up to date.
-   - ❌ Review requirement is optional.
-   - ✅ Block direct pushes (recommended).
-
 ## Testing
 
 This project uses **Jest** for unit testing. To run tests:
@@ -129,24 +172,18 @@ Tests will automatically run on every push or pull request to `main` via GitHub 
 ## Project Structure
 
 ```
-src/
-├── controllers/
-├── services/
-├── modules/
-├── entities/
-├── repositories/
-├── main.ts
-├── app.module.ts
-prisma/
-├── schema.prisma
 .github/
 └── workflows/
     └── ci.yml
+src/
+├── auth/
+├── config/
+├── controllers/
+├── services/
+├── firebase/
+└── main.ts
+test/
 ```
-
-## Support
-
-This template is open source and licensed under the MIT license. Contributions and feedback are welcome.
 
 ## License
 

@@ -54,9 +54,9 @@ export class ProxyService {
     *
     * @param req - The request to be rerouted.
     *
-    * @returns The response of the request.
-    *
     * @throws {Object} - If the service is invalid, not provided or the actual request fails.
+    *
+    * @returns The response of the request.
     */
   private async tryReRoute(req: Request): Promise<AxiosResponse> {
     const parts = req.path.split('/');
