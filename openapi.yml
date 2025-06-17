@@ -61,7 +61,7 @@ paths:
               $ref: '#/components/schemas/AssistantAssignmentEmail'
       responses:
         '200':
-          description: The email was sent successfuly if the user stated to receive notifications for assistant assignments.
+          description: The email was sent successfully if the user stated to receive notifications for assistant assignments.
         '404':
           description: Didn't find user in users service.
         '500':
@@ -133,7 +133,7 @@ paths:
         '200':
           description: Proxied response
 
-  /admin-backend/users/:uid/lock-status:
+  /admin-backend/users/{uid}/lock-status:
     patch:
       summary: Will block the user in the application through Firebase, so that their requests are invalidated by the auth.
       description: |
