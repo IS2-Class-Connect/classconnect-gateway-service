@@ -15,7 +15,7 @@ export class ProxyService {
     courses: process.env.EDUCATION_URL ?? 'http://localhost:3002',
     evaluations: process.env.EDUCATION_URL ?? 'http://localhost:3002',
     admins: process.env.ADMINS_URL ?? 'http://localhost:3004',
-    assessments: process.env.EDUCATION ?? 'http://localhost:3002',
+    assessments: process.env.EDUCATION_URL ?? 'http://localhost:3002',
   };
 
   constructor(private readonly http: HttpService) { }
