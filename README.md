@@ -1,13 +1,13 @@
 ## Table of Contents
 
-- [Description](#description)
-- [Technologies](#technologies)
-- [Project Setup](#project-setup)
-- [Running the Project](#running-the-project)
+- [Description](#Description)
+- [Technologies](#Technologies)
+- [Project Setup](#Project Setup)
+- [Running the Project](#Running the Project)
 - [Testing](#testing)
-- [Project Structure](#project-structure)
+- [Project Structure](#Project Structure)
 - [License](#license)
-- [Code Style](#code-style)
+- [Code Style](#Code Style)
 - [Codecov](#Codecov)
 
 ## Description
