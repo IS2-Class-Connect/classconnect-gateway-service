@@ -25,6 +25,7 @@ export class ProxyController {
     this.serviceMap = {
       users: process.env.USERS_URL ?? 'http://localhost:3001',
       education: process.env.EDUCATION_URL ?? 'http://localhost:3002',
+      assessments: process.env.EDUCATION_URL ?? 'http://localhost:3002',
     };
   }
 
