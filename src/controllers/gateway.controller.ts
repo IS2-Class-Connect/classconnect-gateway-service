@@ -22,7 +22,7 @@ import { ProxyService } from '../services/proxy.service';
 import { NotificationService } from '../services/notification.service';
 import * as admin from 'firebase-admin';
 import { firstValueFrom } from 'rxjs';
-import { AxiosError, AxiosResponse } from 'axios';
+import { AxiosResponse } from 'axios';
 
 @Controller('')
 export class GatewayController {
