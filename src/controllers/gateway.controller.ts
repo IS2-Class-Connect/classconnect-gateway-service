@@ -22,7 +22,7 @@ import { ProxyService } from '../services/proxy.service';
 import { NotificationService } from '../services/notification.service';
 import * as admin from 'firebase-admin';
 import { firstValueFrom } from 'rxjs';
-import { AxiosError, AxiosResponse } from 'axios';
+import { AxiosResponse } from 'axios';
 
 @Controller('')
 export class GatewayController {
@@ -31,6 +31,7 @@ export class GatewayController {
     courses: process.env.EDUCATION_URL ?? 'http://localhost:3002',
     evaluations: process.env.EDUCATION_URL ?? 'http://localhost:3002',
     admins: process.env.ADMINS_URL ?? 'http://localhost:3004',
+    assessments: process.env.EDUCATION ?? 'http://localhost:3002',
   };
 
   constructor(
